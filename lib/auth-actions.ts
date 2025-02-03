@@ -23,8 +23,7 @@ export async function login(formData: FormData) {
     }
 
     setTimeout(() => {
-        revalidatePath('/', 'layout')
-        redirect('/')
+        redirect('/dashboard')
     }, 5000)
 }
 
@@ -54,8 +53,7 @@ export async function signup(formData: FormData) {
     }
 
     setTimeout(() => {
-        revalidatePath('/', 'layout')
-        redirect('/')
+        redirect('/dashboard')
     }, 5000)
 }
 
