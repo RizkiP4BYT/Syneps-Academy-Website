@@ -22,9 +22,9 @@ export async function login(formData: FormData) {
         return error.code
     }
 
-    setTimeout(() => {
-        redirect('/dashboard')
-    }, 5000)
+    // setTimeout(() => {
+    redirect('/dashboard')
+    // }, 5000)
 }
 
 export async function signup(formData: FormData) {
@@ -52,9 +52,9 @@ export async function signup(formData: FormData) {
         return error.code
     }
 
-    setTimeout(() => {
-        redirect('/dashboard')
-    }, 5000)
+    // setTimeout(() => {
+    redirect('/dashboard')
+    // }, 5000)
 }
 
 export async function signout() {
@@ -65,7 +65,7 @@ export async function signout() {
         return error.code
     }
 
-    redirect('/logout')
+    redirect('/')
 }
 
 export async function signInWithGoogle() {
