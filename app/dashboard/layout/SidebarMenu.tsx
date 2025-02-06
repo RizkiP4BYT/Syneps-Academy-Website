@@ -5,17 +5,26 @@ import Link from "next/link";
 const SidebarMenu = () => {
   return (
     <Menu>
-      <Image
-        src="/assets/images/syn-logo-dark.svg"
-        alt="Syneps Academy Logo"
-        width={150}
-        height={150}
-        style={{ marginLeft: "1rem", marginRight: "auto" }}
-      />
+      <Link href="/dashboard">
+        <Image
+          src="/assets/images/syn-logo-dark.svg"
+          alt="Syneps Academy Logo"
+          width={150}
+          height={150}
+          style={{ marginLeft: "1rem", marginRight: "auto" }}
+        />
+      </Link>
+
       <MenuItem component={<Link href={"/dashboard/user"} />}>User</MenuItem>
-      <MenuItem>Program</MenuItem>
-      <MenuItem>Silabus</MenuItem>
-      <MenuItem>Penilaian</MenuItem>
+      <MenuItem component={<Link href={"/dashboard/program"} />}>
+        Program
+      </MenuItem>
+      <MenuItem component={<Link href={"/dashboard/silabus"} />}>
+        Silabus
+      </MenuItem>
+      <MenuItem component={<Link href={"/dashboard/penilaian"} />}>
+        Penilaian
+      </MenuItem>
       <MenuItem>Metode Pembelajaran</MenuItem>
       <MenuItem>Kelas</MenuItem>
       <MenuItem>Metode Pembayaran</MenuItem>
