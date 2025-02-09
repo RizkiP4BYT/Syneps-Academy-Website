@@ -14,26 +14,11 @@ import Link from "next/link";
 import React, { useState } from "react";
 import CustomSnackbar from "../components/CustomSnackbar";
 import { login } from "@/lib/auth-actions";
+import CustomTextField from "../components/CustomTextField";
 
 interface AuthFormProp {
   formOption: "login" | "signup";
 }
-
-const CustomTextField = styled((props: any) => <TextField {...props} />)(
-  ({ theme }) => ({
-    "& .MuiOutlinedInput-input::-webkit-input-placeholder": {
-      color: theme.palette.text.secondary,
-      opacity: "0.8",
-    },
-    "& .MuiOutlinedInput-input.Mui-disabled::-webkit-input-placeholder": {
-      color: theme.palette.text.secondary,
-      opacity: "1",
-    },
-    "& .Mui-disabled .MuiOutlinedInput-notchedOutline": {
-      borderColor: theme.palette.grey[200],
-    },
-  })
-);
 
 const AuthForm: React.FC<AuthFormProp> = ({ formOption }) => {
   if (formOption == "login") {
