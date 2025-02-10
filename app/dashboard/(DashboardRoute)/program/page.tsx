@@ -1,6 +1,9 @@
 "use client";
+
+import CustomSnackbar from "@/app/components/CustomSnackbar";
 import CustomTextField from "@/app/components/CustomTextField";
-import { Delete, Edit } from "@mui/icons-material";
+import { createClient } from "@/utils/supabase/client";
+import { Delete, Edit, Add } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -15,60 +18,85 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { FormEvent, useEffect, useState } from "react";
 
-export default function programPage() {
-  let programData = [
-    {
-      id: 1,
-      nama_program: "Bootcamp",
-      deskripsi_program:
-        "Program pelatihan intensif yang dirancang untuk mengajarkan keterampilan penting dalam pengembangan perangkat lunak, data science, dan bidang-bidang lain yang sedang populer dalam waktu singkat.",
-      created_at: "2016-01-25 10:10:10.555555-05:00",
+interface Program {
+  id: number;
+  nama_program: string;
+  deskripsi_program: string;
+}
+
+export default function ProgramPage() {
+  const queryClient = useQueryClient();
+
+  const {
+    data: Program = [],
+    isLoading,
+    isError,
+  } = useQuery<Program[]>({
+    queryKey: ["Program"],
+
+    queryFn: async () => {
+      const res = await fetch("/api/program");
+
+      if (!res.ok) throw new Error("Gagal memuat data");
+
+      return res.json();
     },
-    {
-      id: 2,
-      nama_program: "Workshop",
-      deskripsi_program:
-        "Acara edukasi praktis di mana peserta terlibat dalam kegiatan praktikal dan mendapatkan panduan mengenai topik tertentu, mulai dari pemrograman hingga manajemen proyek.",
-      created_at: "2017-03-15 14:20:15.333333-05:00",
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (program: Partial<Program>) => {
+      const method = program.id ? "PUT" : "POST";
+      const res = await fetch("/api/program", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(program),
+      });
+      if (!res.ok) throw new Error(await res.json().then((data) => data.error));
+      return res.json();
     },
-    {
-      id: 3,
-      nama_program: "Seminar",
-      deskripsi_program:
-        "Acara berbasis ceramah yang fokus pada area tertentu, menampilkan pembicara ahli yang mempresentasikan tren terbaru, inovasi, dan penelitian.",
-      created_at: "2018-05-10 09:30:25.444444-05:00",
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["Program"] });
+      setSnackbarOpen(true);
+      setSnackbarSeverity("success");
+      setSnackbarMessage("Program berhasil disimpan");
+      handleClose();
     },
-    {
-      id: 4,
-      nama_program: "Sertifikasi",
-      deskripsi_program:
-        "Proses pemberian sertifikat resmi yang mengonfirmasi keahlian dan keterampilan individu dalam bidang atau teknologi tertentu, seringkali diperlukan untuk pengembangan karir.",
-      created_at: "2019-07-18 16:45:35.123456-05:00",
+
+    onError: (error) => {
+      setSnackbarOpen(true);
+      setSnackbarSeverity("error");
+      setSnackbarMessage(error.message || "Gagal menyimpan program");
     },
-    {
-      id: 5,
-      nama_program: "Hackathon",
-      deskripsi_program:
-        "Acara kompetitif di mana tim peserta bekerja sama untuk membangun solusi atau proyek inovatif dalam waktu terbatas, seringkali berfokus pada tantangan teknologi atau pemrograman.",
-      created_at: "2020-09-22 11:55:45.654321-05:00",
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch("/api/program", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error(await res.json().then((data) => data.error));
+      return res.json();
     },
-    {
-      id: 6,
-      nama_program: "Konferensi",
-      deskripsi_program:
-        "Kumpulan besar profesional, ahli, dan penggemar untuk membahas dan berbagi tren terbaru, penelitian, dan inovasi dalam industri atau bidang studi tertentu.",
-      created_at: "2021-11-30 08:05:50.777777-05:00",
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["Program"] });
+      setSnackbarOpen(true);
+      setSnackbarSeverity("success");
+      setSnackbarMessage("Program berhasil dihapus");
     },
-    {
-      id: 7,
-      nama_program: "Mentorship",
-      deskripsi_program:
-        "Program yang dirancang untuk menghubungkan para profesional berpengalaman dengan mentee yang membutuhkan bimbingan, dukungan, dan nasihat karir untuk meningkatkan perkembangan pribadi dan profesional mereka.",
-      created_at: "2022-01-10 12:15:55.888888-05:00",
+
+    onError: (error) => {
+      setSnackbarOpen(true);
+      setSnackbarSeverity("error");
+      setSnackbarMessage(error.message || "Gagal menghapus program");
     },
-  ];
+  });
 
   const modalBoxStyle = {
     position: "absolute",
@@ -79,54 +107,120 @@ export default function programPage() {
     bgcolor: "background.paper",
     boxShadow: 24,
     p: 4,
+    borderRadius: 2,
   };
 
-  const [modalType, setModalType] = useState<"create" | "edit">();
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [modalType, setModalType] = useState<"create" | "edit">("create");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
+  const [namaProgram, setNamaProgram] = useState("");
+  const [deskripsiProgram, setDeskripsiProgram] = useState("");
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    "success" | "error" | "info" | "warning"
+  >("info");
 
-  const handleSubmit = async (formData: FormData) => {
-    console.log(formData);
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    mutation.mutate({
+      id: selectedProgram?.id,
+      nama_program: namaProgram,
+      deskripsi_program: deskripsiProgram,
+    });
   };
+
+  const handleDelete = (id: number) => {
+    if (confirm("Apakah Anda yakin ingin menghapus program ini?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleClose = () => {
+    setModalOpen(false);
+    setSelectedProgram(null);
+    setNamaProgram("");
+    setDeskripsiProgram("");
+  };
+
+  useEffect(() => {
+    if (selectedProgram) {
+      setNamaProgram(selectedProgram.nama_program);
+      setDeskripsiProgram(selectedProgram.deskripsi_program);
+    }
+  }, [selectedProgram]);
+
+  if (isLoading) return <div>Memuat...</div>;
+  if (isError) return <div>Terjadi kesalahan saat memuat data</div>;
+
   return (
     <Box>
-      <h1>Program</h1>
-      <p>
-        Disini kamu bisa manajemen Program-program yang terdaftar di Syneps
-        Academy.
-      </p>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
+        <Box>
+          <Typography variant="h4">Program</Typography>
+
+          <Typography variant="body1">
+            Manajemen program Syneps Academy
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => {
+            setModalType("create");
+
+            setModalOpen(true);
+          }}
+        >
+          Tambah Program
+        </Button>
+      </Box>
 
       <TableContainer>
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
               <TableCell>No.</TableCell>
+
               <TableCell>Nama Program</TableCell>
+
               <TableCell>Deskripsi</TableCell>
+
               <TableCell>Aksi</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {programData.map((program, index) => (
-              <TableRow key={index + 1}>
+            {Program.map((program, index) => (
+              <TableRow key={program.id}>
                 <TableCell>{index + 1}</TableCell>
+
                 <TableCell>{program.nama_program}</TableCell>
+
                 <TableCell>{program.deskripsi_program}</TableCell>
+
                 <TableCell>
-                  <ButtonGroup
-                    variant="contained"
-                    sx={{ p: "2" }}
-                    aria-label="Action Button"
-                  >
+                  <ButtonGroup variant="contained">
                     <Button
                       color="info"
                       onClick={() => {
-                        setModalOpen(true);
+                        setSelectedProgram(program);
+
                         setModalType("edit");
+
+                        setModalOpen(true);
                       }}
                     >
                       <Edit />
                     </Button>
-                    <Button color="error">
+                    <Button
+                      color="error"
+                      onClick={() => handleDelete(program.id)}
+                    >
                       <Delete />
                     </Button>
                   </ButtonGroup>
@@ -136,75 +230,50 @@ export default function programPage() {
           </TableBody>
         </Table>
       </TableContainer>
-      <Modal open={modalOpen}>
-        {modalType == "edit" ? (
-          <form
-            action=""
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
+
+      <Modal open={modalOpen} onClose={handleClose}>
+        <Box sx={modalBoxStyle} component="form" onSubmit={handleSubmit}>
+          <Typography variant="h5" mb={3}>
+            {modalType === "edit" ? "Edit Program" : "Buat Program Baru"}
+          </Typography>
+
+          <CustomTextField
+            label="Nama Program"
+            value={namaProgram}
+            onChange={(e) => setNamaProgram(e.target.value)}
+            fullWidth
+            required
+            sx={{ mb: 3 }}
+          />
+
+          <CustomTextField
+            label="Deskripsi Program"
+            value={deskripsiProgram}
+            onChange={(e) => setDeskripsiProgram(e.target.value)}
+            fullWidth
+            multiline
+            rows={4}
+            required
+            sx={{ mb: 3 }}
+          />
+
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            disabled={mutation.isPending}
           >
-            <Box sx={modalBoxStyle}>
-              <Typography variant="h4">Edit Program</Typography>
-              <Box mt="20px">
-                <Typography variant="subtitle1" fontWeight={600} mb="5px">
-                  Nama Program
-                </Typography>
-                <CustomTextField
-                  variant="outlined"
-                  fullWidth
-                  name="Nama Program"
-                  id="nama_program"
-                  type="text"
-                />
-              </Box>
-              <Box>
-                <Typography variant="subtitle1" fontWeight={600} mb="5px">
-                  Deskripsi Program
-                </Typography>
-                <CustomTextField
-                  variant="outlined"
-                  fullWidth
-                  name="Deskripsi Program"
-                  id="deskripsi_program"
-                  type="text"
-                />
-              </Box>
-              <Box mt="5px">
-                <Button
-                  color="primary"
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  formAction={(form) => handleSubmit(form)}
-                  type="submit"
-                >
-                  Simpan
-                </Button>
-              </Box>
-            </Box>
-          </form>
-        ) : modalType == "create" ? (
-          <Box sx={modalBoxStyle}>
-            <Typography>Buat Program</Typography>
-            <Box>
-              <Typography variant="subtitle1" fontWeight={600} mb="5px">
-                Nama Program
-              </Typography>
-              <CustomTextField
-                variant="outlined"
-                fullWidth
-                name="Nama Program"
-                id="nama_program"
-                type="text"
-              />
-            </Box>
-            <Box mt="25px"></Box>
-          </Box>
-        ) : (
-          <p>Null</p>
-        )}
+            {mutation.isPending ? "Menyimpan..." : "Simpan"}
+          </Button>
+        </Box>
       </Modal>
+
+      <CustomSnackbar
+        open={snackbarOpen}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+      />
     </Box>
   );
 }
