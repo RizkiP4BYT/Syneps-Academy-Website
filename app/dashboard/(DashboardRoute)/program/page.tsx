@@ -36,12 +36,9 @@ export default function ProgramPage() {
     isError,
   } = useQuery<Program[]>({
     queryKey: ["Program"],
-
     queryFn: async () => {
       const res = await fetch("/api/program");
-
       if (!res.ok) throw new Error("Gagal memuat data");
-
       return res.json();
     },
   });
@@ -57,7 +54,6 @@ export default function ProgramPage() {
       if (!res.ok) throw new Error(await res.json().then((data) => data.error));
       return res.json();
     },
-
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["Program"] });
       setSnackbarOpen(true);
@@ -65,7 +61,6 @@ export default function ProgramPage() {
       setSnackbarMessage("Program berhasil disimpan");
       handleClose();
     },
-
     onError: (error) => {
       setSnackbarOpen(true);
       setSnackbarSeverity("error");
@@ -83,14 +78,13 @@ export default function ProgramPage() {
       if (!res.ok) throw new Error(await res.json().then((data) => data.error));
       return res.json();
     },
-
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["Program"] });
       setSnackbarOpen(true);
       setSnackbarSeverity("success");
       setSnackbarMessage("Program berhasil dihapus");
+      handleCloseDeleteModal();
     },
-
     onError: (error) => {
       setSnackbarOpen(true);
       setSnackbarSeverity("error");
@@ -112,6 +106,7 @@ export default function ProgramPage() {
 
   const [modalType, setModalType] = useState<"create" | "edit">("create");
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [namaProgram, setNamaProgram] = useState("");
   const [deskripsiProgram, setDeskripsiProgram] = useState("");
@@ -131,9 +126,7 @@ export default function ProgramPage() {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Apakah Anda yakin ingin menghapus program ini?")) {
-      deleteMutation.mutate(id);
-    }
+    deleteMutation.mutate(id);
   };
 
   const handleClose = () => {
@@ -141,6 +134,11 @@ export default function ProgramPage() {
     setSelectedProgram(null);
     setNamaProgram("");
     setDeskripsiProgram("");
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setSelectedProgram(null);
   };
 
   useEffect(() => {
@@ -163,7 +161,6 @@ export default function ProgramPage() {
       >
         <Box>
           <Typography variant="h4">Program</Typography>
-
           <Typography variant="body1">
             Manajemen program Syneps Academy
           </Typography>
@@ -173,7 +170,6 @@ export default function ProgramPage() {
           startIcon={<Add />}
           onClick={() => {
             setModalType("create");
-
             setModalOpen(true);
           }}
         >
@@ -186,47 +182,52 @@ export default function ProgramPage() {
           <TableHead>
             <TableRow>
               <TableCell>No.</TableCell>
-
               <TableCell>Nama Program</TableCell>
-
               <TableCell>Deskripsi</TableCell>
-
               <TableCell>Aksi</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {Program.map((program, index) => (
-              <TableRow key={program.id}>
-                <TableCell>{index + 1}</TableCell>
-
-                <TableCell>{program.nama_program}</TableCell>
-
-                <TableCell>{program.deskripsi_program}</TableCell>
-
-                <TableCell>
-                  <ButtonGroup variant="contained">
-                    <Button
-                      color="info"
-                      onClick={() => {
-                        setSelectedProgram(program);
-
-                        setModalType("edit");
-
-                        setModalOpen(true);
-                      }}
-                    >
-                      <Edit />
-                    </Button>
-                    <Button
-                      color="error"
-                      onClick={() => handleDelete(program.id)}
-                    >
-                      <Delete />
-                    </Button>
-                  </ButtonGroup>
+            {Program.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  <Typography variant="body1" color="textSecondary">
+                    Tidak ada data program tersedia.
+                  </Typography>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              Program.map((program, index) => (
+                <TableRow key={program.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{program.nama_program}</TableCell>
+                  <TableCell>{program.deskripsi_program}</TableCell>
+                  <TableCell>
+                    <ButtonGroup variant="contained">
+                      <Button
+                        color="info"
+                        onClick={() => {
+                          setSelectedProgram(program);
+                          setModalType("edit");
+                          setModalOpen(true);
+                        }}
+                      >
+                        <Edit />
+                      </Button>
+                      <Button
+                        color="error"
+                        onClick={() => {
+                          setSelectedProgram(program);
+                          setDeleteModalOpen(true);
+                        }}
+                      >
+                        <Delete />
+                      </Button>
+                    </ButtonGroup>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -236,7 +237,6 @@ export default function ProgramPage() {
           <Typography variant="h5" mb={3}>
             {modalType === "edit" ? "Edit Program" : "Buat Program Baru"}
           </Typography>
-
           <CustomTextField
             label="Nama Program"
             value={namaProgram}
@@ -245,7 +245,6 @@ export default function ProgramPage() {
             required
             sx={{ mb: 3 }}
           />
-
           <CustomTextField
             label="Deskripsi Program"
             value={deskripsiProgram}
@@ -256,7 +255,6 @@ export default function ProgramPage() {
             required
             sx={{ mb: 3 }}
           />
-
           <Button
             type="submit"
             variant="contained"
@@ -264,6 +262,25 @@ export default function ProgramPage() {
             disabled={mutation.isPending}
           >
             {mutation.isPending ? "Menyimpan..." : "Simpan"}
+          </Button>
+        </Box>
+      </Modal>
+
+      <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
+        <Box sx={modalBoxStyle}>
+          <Typography variant="h5" mb={3}>
+            Hapus Program
+          </Typography>
+          <Typography variant="body1" mb={3}>
+            Apakah Anda yakin ingin menghapus program ini?
+          </Typography>
+          <Button
+            variant="contained"
+            color="error"
+            fullWidth
+            onClick={() => selectedProgram && handleDelete(selectedProgram.id)}
+          >
+            Hapus
           </Button>
         </Box>
       </Modal>
