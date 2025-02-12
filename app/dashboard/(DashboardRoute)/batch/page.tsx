@@ -2,81 +2,92 @@
 
 import CustomSnackbar from '@/app/components/CustomSnackbar'
 import CustomTextField from '@/app/components/CustomTextField'
-import { Add, Delete, Edit } from '@mui/icons-material'
-import { Box, Button, ButtonGroup, IconButton, Modal, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Grid2, useMediaQuery, useTheme, Skeleton } from '@mui/material'
+import { Delete, Edit, Add } from '@mui/icons-material'
+import { Box, Button, ButtonGroup, IconButton, Modal, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Grid, useMediaQuery, useTheme, Skeleton } from '@mui/material'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import React, { FormEvent, useEffect, useState } from 'react'
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { format } from 'date-fns'
+import { id } from 'date-fns/locale'
 
-interface User {
-    user_id: string
-    user_name: string
-    user_level: 'Siswa' | 'Pengajar' | 'Admin'
+interface Batches {
+    batch_id: string
+    batch_number: number
+    batch_start: Date | null
+    batch_end: Date | null
 }
 
-export default function UserPage() {
+export default function BatchPage() {
     const queryClient = useQueryClient()
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
     const {
-        data: users = [],
+        data: Batches = [],
         isLoading,
         isError
-    } = useQuery<User[]>({
-        queryKey: ['Users'],
+    } = useQuery<Batches[]>({
+        queryKey: ['Batches'],
         queryFn: async () => {
-            const res = await fetch('/api/user')
+            const res = await fetch('/api/batch')
             if (!res.ok) throw new Error('Gagal memuat data')
-            return res.json()
+            const data = await res.json()
+            return data.map((batch: any) => ({
+                ...batch,
+                batch_start: batch.batch_start ? new Date(batch.batch_start) : null,
+                batch_end: batch.batch_end ? new Date(batch.batch_end) : null
+            }))
         }
     })
 
     const mutation = useMutation({
-        mutationFn: async (user: Partial<User>) => {
-            const method = user.user_id ? 'PUT' : 'POST'
-            const res = await fetch('/api/user', {
+        mutationFn: async (batch: Partial<Batches>) => {
+            const method = batch.batch_id ? 'PUT' : 'POST'
+            const res = await fetch('/api/batch', {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(user)
+                body: JSON.stringify(batch)
             })
             if (!res.ok) throw new Error(await res.json().then((data) => data.error))
             return res.json()
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['Users'] })
+            queryClient.invalidateQueries({ queryKey: ['Batches'] })
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
-            setSnackbarMessage('User berhasil disimpan')
+            setSnackbarMessage('Batch berhasil disimpan')
             handleClose()
         },
         onError: (error) => {
             setSnackbarOpen(true)
             setSnackbarSeverity('error')
-            setSnackbarMessage(error.message || 'Gagal menyimpan User')
+            setSnackbarMessage(error.message || 'Gagal menyimpan batch')
         }
     })
 
     const deleteMutation = useMutation({
-        mutationFn: async (user_id: string) => {
-            const res = await fetch('/api/user', {
+        mutationFn: async (batch_id: string) => {
+            const res = await fetch('/api/batch', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id })
+                body: JSON.stringify({ batch_id })
             })
             if (!res.ok) throw new Error(await res.json().then((data) => data.error))
             return res.json()
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['Users'] })
+            queryClient.invalidateQueries({ queryKey: ['Batches'] })
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
-            setSnackbarMessage('User berhasil dihapus')
+            setSnackbarMessage('Batch berhasil dihapus')
             handleCloseDeleteModal()
         },
         onError: (error) => {
             setSnackbarOpen(true)
             setSnackbarSeverity('error')
-            setSnackbarMessage(error.message || 'Gagal menghapus User')
+            setSnackbarMessage(error.message || 'Gagal menghapus batch')
         }
     })
 
@@ -95,9 +106,9 @@ export default function UserPage() {
     const [modalType, setModalType] = useState<'create' | 'edit'>('create')
     const [modalOpen, setModalOpen] = useState(false)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-    const [selectedUser, setSelectedUser] = useState<User | null>(null)
-    const [userName, setUserName] = useState('')
-    const [userLevel, setUserLevel] = useState<'Siswa' | 'Pengajar' | 'Admin'>('Siswa')
+    const [selectedBatch, setSelectedBatch] = useState<Batches | null>(null)
+    const [batchStart, setBatchStart] = useState<Date | null>(null)
+    const [batchEnd, setBatchEnd] = useState<Date | null>(null)
     const [snackbarOpen, setSnackbarOpen] = useState(false)
     const [snackbarMessage, setSnackbarMessage] = useState('')
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info')
@@ -105,47 +116,51 @@ export default function UserPage() {
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault()
         mutation.mutate({
-            user_id: selectedUser?.user_id,
-            user_name: userName,
-            user_level: userLevel
+            batch_id: selectedBatch?.batch_id,
+            batch_start: batchStart,
+            batch_end: batchEnd
         })
     }
 
-    const handleDelete = (user_id: string) => {
-        deleteMutation.mutate(user_id)
+    const handleDelete = (batch_id: string) => {
+        deleteMutation.mutate(batch_id)
     }
 
     const handleClose = () => {
         setModalOpen(false)
-        setSelectedUser(null)
-        setUserName('')
-        setUserLevel('Siswa')
+        setSelectedBatch(null)
+        setBatchStart(null)
+        setBatchEnd(null)
     }
 
     const handleCloseDeleteModal = () => {
         setDeleteModalOpen(false)
-        setSelectedUser(null)
+        setSelectedBatch(null)
     }
 
     useEffect(() => {
-        if (selectedUser) {
-            setUserName(selectedUser.user_name)
-            setUserLevel(selectedUser.user_level)
+        if (selectedBatch) {
+            setBatchStart(selectedBatch.batch_start)
+            setBatchEnd(selectedBatch.batch_end)
+            console.log(selectedBatch)
+        } else {
+            setBatchStart(null)
+            setBatchEnd(null)
         }
-    }, [selectedUser])
+    }, [selectedBatch])
 
     if (isLoading) {
         return (
             <Box p={isMobile ? 2 : 4}>
-                <Grid2 container justifyContent="space-between" alignItems="center" mb={3}>
-                    <Grid2>
+                <Grid container justifyContent="space-between" alignItems="center" mb={3}>
+                    <Grid item>
                         <Skeleton variant="text" width={200} height={40} />
                         <Skeleton variant="text" width={300} height={20} />
-                    </Grid2>
-                    <Grid2>
+                    </Grid>
+                    <Grid item>
                         <Skeleton variant="rectangular" width={150} height={40} />
-                    </Grid2>
-                </Grid2>
+                    </Grid>
+                </Grid>
 
                 <TableContainer>
                     <Table sx={{ minWidth: isMobile ? 300 : 650 }}>
@@ -192,12 +207,12 @@ export default function UserPage() {
 
     return (
         <Box p={isMobile ? 2 : 4}>
-            <Grid2 container justifyContent="space-between" alignItems="center" mb={3}>
-                <Grid2>
-                    <Typography variant="h4">User</Typography>
-                    <Typography variant="body1">Manajemen User Syneps Academy</Typography>
-                </Grid2>
-                <Grid2>
+            <Grid container justifyContent="space-between" alignItems="center" mb={3}>
+                <Grid item>
+                    <Typography variant="h4">Batch</Typography>
+                    <Typography variant="body1">Manajemen batch Syneps Academy</Typography>
+                </Grid>
+                <Grid item>
                     <Button
                         variant="contained"
                         startIcon={<Add />}
@@ -206,42 +221,44 @@ export default function UserPage() {
                             setModalOpen(true)
                         }}
                     >
-                        Tambah User
+                        Tambah Batch
                     </Button>
-                </Grid2>
-            </Grid2>
+                </Grid>
+            </Grid>
 
             <TableContainer>
                 <Table sx={{ minWidth: isMobile ? 300 : 650 }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>No.</TableCell>
-                            <TableCell>Nama User</TableCell>
-                            <TableCell>Level</TableCell>
+                            <TableCell>Batch</TableCell>
+                            <TableCell>Batch Start</TableCell>
+                            <TableCell>Batch End</TableCell>
                             <TableCell>Aksi</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {users.length === 0 ? (
+                        {Batches.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={4} align="center">
                                     <Typography variant="body1" color="textSecondary">
-                                        Tidak ada data User tersedia.
+                                        Tidak ada data batch tersedia.
                                     </Typography>
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            users.map((user, index) => (
-                                <TableRow key={user.user_id}>
+                            Batches.map((batch, index) => (
+                                <TableRow key={batch.batch_id}>
                                     <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{user.user_name}</TableCell>
-                                    <TableCell>{user.user_level}</TableCell>
+                                    <TableCell>Batch {batch.batch_number}</TableCell>
+                                    <TableCell>{format(batch.batch_start!, 'dd MMMM yyyy - HH:mm', { locale: id })}</TableCell>
+                                    <TableCell>{format(batch.batch_end!, 'dd MMMM yyyy - HH:mm', { locale: id })}</TableCell>
                                     <TableCell>
                                         <ButtonGroup variant="contained" size={isMobile ? 'small' : 'medium'}>
                                             <Button
                                                 color="info"
                                                 onClick={() => {
-                                                    setSelectedUser(user)
+                                                    setSelectedBatch(batch)
                                                     setModalType('edit')
                                                     setModalOpen(true)
                                                 }}
@@ -251,7 +268,7 @@ export default function UserPage() {
                                             <Button
                                                 color="error"
                                                 onClick={() => {
-                                                    setSelectedUser(user)
+                                                    setSelectedBatch(batch)
                                                     setDeleteModalOpen(true)
                                                 }}
                                             >
@@ -269,23 +286,34 @@ export default function UserPage() {
             <Modal open={modalOpen} onClose={handleClose}>
                 <Box sx={modalBoxStyle} component="form" onSubmit={handleSubmit}>
                     <Typography variant="h5" mb={3}>
-                        {modalType === 'edit' ? 'Edit User' : 'Buat User Baru'}
+                        {modalType === 'edit' ? 'Edit Batch' : 'Buat Batch Baru'}
                     </Typography>
-                    <CustomTextField label="Nama User" value={userName} onChange={(e) => setUserName(e.target.value)} fullWidth required sx={{ mb: 3 }} />
-                    <CustomTextField
-                        label="Level User"
-                        value={userLevel}
-                        onChange={(e) => setUserLevel(e.target.value as 'Siswa' | 'Pengajar' | 'Admin')}
-                        fullWidth
-                        select
-                        SelectProps={{ native: true }}
-                        required
-                        sx={{ mb: 3 }}
-                    >
-                        <option value="Siswa">Siswa</option>
-                        <option value="Pengajar">Pengajar</option>
-                        <option value="Admin">Admin</option>
-                    </CustomTextField>
+                    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={id}>
+                        <DateTimePicker
+                            label="Start Batch"
+                            value={batchStart}
+                            onChange={(newValue) => setBatchStart(newValue)}
+                            format="dd MMMM yyyy HH:mm"
+                            slots={{
+                                textField: CustomTextField
+                            }}
+                            slotProps={{
+                                textField: { fullWidth: true, required: true }
+                            }}
+                        />
+                        <DateTimePicker
+                            label="End Batch"
+                            value={batchEnd}
+                            onChange={(newValue) => setBatchEnd(newValue)}
+                            format="dd MMMM yyyy HH:mm"
+                            slots={{
+                                textField: CustomTextField
+                            }}
+                            slotProps={{
+                                textField: { fullWidth: true, required: true }
+                            }}
+                        />
+                    </LocalizationProvider>
                     <Button type="submit" variant="contained" fullWidth disabled={mutation.isPending}>
                         {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
                     </Button>
@@ -295,12 +323,12 @@ export default function UserPage() {
             <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
                 <Box sx={modalBoxStyle}>
                     <Typography variant="h5" mb={3}>
-                        Hapus User
+                        Hapus Batch
                     </Typography>
                     <Typography variant="body1" mb={3}>
-                        Apakah Anda yakin ingin menghapus User ini?
+                        Apakah Anda yakin ingin menghapus batch ini?
                     </Typography>
-                    <Button variant="contained" color="error" fullWidth onClick={() => selectedUser && handleDelete(selectedUser.user_id)}>
+                    <Button variant="contained" color="error" fullWidth onClick={() => selectedBatch && handleDelete(selectedBatch.batch_id)}>
                         Hapus
                     </Button>
                 </Box>

@@ -5,13 +5,13 @@ export async function GET() {
     const supabase = await createClient()
 
     try {
-        const { data, error } = await supabase.from('Programs').select('*').order('program_name', { ascending: true })
+        const { data, error } = await supabase.from('Users').select('*').order('user_name', { ascending: true })
 
         if (error) throw error
         return NextResponse.json(data)
     } catch (error) {
         console.error(error)
-        return NextResponse.json({ error: 'Gagal mengambil data program' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal mengambil data pengguna' }, { status: 500 })
     }
 }
 
@@ -19,23 +19,23 @@ export async function POST(request: Request) {
     const supabase = await createClient()
     const body = await request.json()
 
-    if (!body.program_name || !body.program_description) {
+    if (!body.user_name || !body.user_level) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'program_name', dan 'program_description' untuk melanjutkan."
+                error: "Diperlukan 'user_name' dan 'user_level' untuk melanjutkan."
             },
             { status: 400 }
         )
     }
 
     try {
-        const { data, error } = await supabase.from('Programs').insert([body]).select()
+        const { data, error } = await supabase.from('Users').insert([body]).select()
 
         if (error) throw error
         return NextResponse.json(data[0])
     } catch (error) {
         console.error(error)
-        return NextResponse.json({ error: 'Gagal membuat program' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal membuat pengguna' }, { status: 500 })
     }
 }
 
@@ -43,40 +43,40 @@ export async function PUT(request: Request) {
     const supabase = await createClient()
     const body = await request.json()
 
-    if (!body.program_id || !body.program_name || !body.program_description) {
+    if (!body.user_id || !body.user_name || !body.user_level) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'program_id', 'program_name', dan 'program_description' untuk melanjutkan."
+                error: "Diperlukan 'user_id', 'user_name', dan 'user_level' untuk melanjutkan."
             },
             { status: 400 }
         )
     }
 
     try {
-        const { data, error } = await supabase.from('Programs').update(body).eq('program_id', body.program_id).select()
+        const { data, error } = await supabase.from('Users').update(body).eq('user_id', body.user_id).select()
 
         if (error) throw error
         return NextResponse.json(data[0])
     } catch (error) {
         console.error(error)
-        return NextResponse.json({ error: 'Gagal memperbarui program' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal memperbarui pengguna' }, { status: 500 })
     }
 }
 
 export async function DELETE(request: Request) {
     const supabase = await createClient()
-    const { program_id } = await request.json()
+    const { user_id } = await request.json()
 
-    if (!program_id) {
-        return NextResponse.json({ error: "Kamu harus memasukkan 'program_id' untuk penghapusan" }, { status: 400 })
+    if (!user_id) {
+        return NextResponse.json({ error: "Kamu harus memasukkan 'user_id' untuk penghapusan" }, { status: 400 })
     }
     try {
-        const { error } = await supabase.from('Programs').delete().eq('program_id', program_id)
+        const { error } = await supabase.from('Users').delete().eq('user_id', user_id)
 
         if (error) throw error
         return NextResponse.json({ success: true })
     } catch (error) {
         console.error(error)
-        return NextResponse.json({ error: 'Gagal menghapus program' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal menghapus pengguna' }, { status: 500 })
     }
 }

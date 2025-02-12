@@ -1,56 +1,70 @@
-import { Menu, MenuItem } from 'react-pro-sidebar'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Person as UserIcon, Book as ProgramIcon, Class as KelasIcon, List as SilabusIcon, Grade as PenilaianIcon, Share as ReferralIcon } from '@mui/icons-material'
-import { useTheme } from '@mui/material/styles'
+import { Menu, MenuItem } from "react-pro-sidebar";
+import Image from "next/image";
+import Link from "next/link";
+import { Person as UserIcon, Book as ProgramIcon, Class as KelasIcon, List as SilabusIcon, Grade as PenilaianIcon, Share as ReferralIcon, ManageHistory as BatchIcon } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
+import { OverridableComponent } from "@mui/material/OverridableComponent";
+import { JSX } from "react";
 
 const SidebarMenu = () => {
-    const theme = useTheme() // Mengakses tema dari MUI
+    const theme = useTheme(); // Mengakses tema dari MUI
 
-    const pagesList = [
+    type Page = {
+        name: string;
+        link: string;
+        icon: JSX.Element;
+    };
+
+    type PagesListProp = Page[];
+    const pagesList: PagesListProp = [
         {
-            name: 'User',
-            link: '/dashboard/user',
-            icon: <UserIcon />
+            name: "User",
+            link: "/dashboard/user",
+            icon: <UserIcon />,
         },
         {
-            name: 'Program',
-            link: '/dashboard/program',
-            icon: <ProgramIcon />
+            name: "Program",
+            link: "/dashboard/program",
+            icon: <ProgramIcon />,
         },
         {
-            name: 'Kelas',
-            link: '/dashboard/kelas',
-            icon: <KelasIcon />
+            name: "Batch",
+            link: "/dashboard/batch",
+            icon: <BatchIcon />,
         },
         {
-            name: 'Silabus',
-            link: '/dashboard/silabus',
-            icon: <SilabusIcon />
+            name: "Kelas",
+            link: "/dashboard/kelas",
+            icon: <KelasIcon />,
         },
         {
-            name: 'Penilaian',
-            link: '/dashboard/penilaian',
-            icon: <PenilaianIcon />
+            name: "Silabus",
+            link: "/dashboard/silabus",
+            icon: <SilabusIcon />,
         },
         {
-            name: 'Referral',
-            link: '/dashboard/referral',
-            icon: <ReferralIcon />
-        }
-    ]
+            name: "Penilaian",
+            link: "/dashboard/penilaian",
+            icon: <PenilaianIcon />,
+        },
+        {
+            name: "Referral",
+            link: "/dashboard/referral",
+            icon: <ReferralIcon />,
+        },
+    ];
 
     return (
         <Menu
             rootStyles={{
-                height: '100vh',
+                height: "100vh",
                 backgroundColor: theme.palette.background.paper, // Menggunakan warna background dari tema
                 color: theme.palette.text.primary, // Menggunakan warna teks dari tema
-                paddingTop: '1rem'
+                paddingTop: "1rem",
             }}
         >
             <Link href="/dashboard">
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem 0' }}>
+                <div style={{ display: "flex", justifyContent: "center", padding: "1rem 0" }}>
                     <Image src="/assets/images/syn-logo-dark.svg" alt="Syneps Academy Logo" width={150} height={150} />
                 </div>
             </Link>
@@ -61,20 +75,21 @@ const SidebarMenu = () => {
                     key={index}
                     icon={page.icon}
                     rootStyles={{
-                        padding: '0.75rem 1.5rem',
-                        margin: '0.25rem 0',
-                        borderRadius: '4px',
-                        transition: 'background-color 0.3s',
-                        '&:hover': {
-                            backgroundColor: theme.palette.action.hover // Menggunakan warna hover dari tema
-                        }
+                        padding: "0.75rem 1.5rem",
+                        margin: "0.25rem 0",
+                        borderRadius: "4px",
+                        transition: "background-color 0.3s",
+                        "&:hover": {
+                            backgroundColor: theme.palette.action.hover, // Menggunakan warna hover dari tema
+                        },
                     }}
                 >
                     {page.name}
                 </MenuItem>
             ))}
         </Menu>
-    )
-}
+    );
+};
 
-export default SidebarMenu
+export default SidebarMenu;
+
