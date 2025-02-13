@@ -40,6 +40,7 @@ interface Class {
     class_description: string
     learning_method: string
     created_at: string
+    participants: { user_id: string; user_name: string }[] // Tambahkan participants
 }
 
 interface Program {
@@ -52,6 +53,12 @@ interface Batch {
     batch_number: number
     batch_start: string
     batch_end: string
+}
+
+interface User {
+    user_id: string
+    user_name: string
+    user_level: 'Siswa' | 'Pengajar' | 'Admin'
 }
 
 interface ClassesData {
@@ -167,6 +174,7 @@ export default function KelasPage() {
     const [modalOpen, setModalOpen] = useState(false)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
     const [batchModalOpen, setBatchModalOpen] = useState(false)
+    const [manageStudentsModalOpen, setManageStudentsModalOpen] = useState(false) // Modal untuk Kelola Siswa
     const [selectedKelas, setSelectedKelas] = useState<Class | null>(null)
     const [idProgram, setIdProgram] = useState<string | null>(null)
     const [idBatch, setIdBatch] = useState<string | null>(null)
@@ -179,6 +187,35 @@ export default function KelasPage() {
     const [snackbarMessage, setSnackbarMessage] = useState('')
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info')
 
+    // State untuk Kelola Siswa
+    const [allStudents, setAllStudents] = useState<any[]>([])
+    const [selectedStudents, setSelectedStudents] = useState<any[]>([])
+
+    const { data: usersData = [], isLoading: isLoadingUsers } = useQuery<User[]>({
+        queryKey: ['Users'],
+        queryFn: async () => {
+            const res = await fetch('/api/user')
+            if (!res.ok) throw new Error('Gagal memuat data pengguna')
+            return res.json()
+        }
+    })
+
+    useEffect(() => {
+        if (usersData.length > 0) {
+            // Ambil semua siswa
+            const students = usersData.filter((user) => user.user_level === 'Siswa')
+            // Hapus siswa yang sudah terdaftar di kelas dari daftar semua siswa
+            const availableStudents = students.filter((student) => !selectedStudents.some((selected) => selected.user_id === student.user_id))
+            setAllStudents(availableStudents)
+        }
+    }, [usersData, selectedStudents]) // Tambahkan selectedStudents sebagai dependensi
+
+    useEffect(() => {
+        if (selectedKelas) {
+            setSelectedStudents(selectedKelas.participants || [])
+        }
+    }, [selectedKelas])
+
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault()
         mutation.mutate({
@@ -187,7 +224,8 @@ export default function KelasPage() {
             batch_id: idBatch!,
             class_name: namaKelas,
             class_description: deskripsiKelas,
-            learning_method: metodePembelajaran
+            learning_method: metodePembelajaran,
+            participants: selectedStudents // Tambahkan peserta
         })
     }
 
@@ -207,6 +245,47 @@ export default function KelasPage() {
 
     const handleDelete = (class_id: string) => {
         deleteMutation.mutate(class_id)
+    }
+
+    const handleAddStudent = (student: any) => {
+        setSelectedStudents((prev) => [...prev, student])
+        setAllStudents((prev) => prev.filter((s) => s.user_id !== student.user_id))
+    }
+
+    const handleRemoveStudent = (student: any) => {
+        setSelectedStudents((prev) => prev.filter((s) => s.user_id !== student.user_id))
+        setAllStudents((prev) => [...prev, student])
+    }
+
+    const saveStudentsMutation = useMutation({
+        mutationFn: async (data: { class_id: string; participants: any[] }) => {
+            const response = await fetch('/api/participant', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            if (!response.ok) throw new Error('Gagal menyimpan peserta')
+            return response.json()
+        },
+        onSuccess: () => {
+            setSnackbarOpen(true)
+            setSnackbarSeverity('success')
+            setSnackbarMessage('Peserta berhasil disimpan')
+            setManageStudentsModalOpen(false)
+            queryClient.invalidateQueries({ queryKey: ['Classes'] }) // Invalidate query untuk refresh data
+        },
+        onError: () => {
+            setSnackbarOpen(true)
+            setSnackbarSeverity('error')
+            setSnackbarMessage('Gagal menyimpan peserta')
+        }
+    })
+
+    const handleSaveStudents = () => {
+        saveStudentsMutation.mutate({
+            class_id: selectedKelas?.class_id!,
+            participants: selectedStudents
+        })
     }
 
     const handleClose = () => {
@@ -231,6 +310,10 @@ export default function KelasPage() {
         setEndBatch(null)
     }
 
+    const handleCloseManageStudentsModal = () => {
+        setManageStudentsModalOpen(false)
+    }
+
     useEffect(() => {
         if (selectedKelas) {
             setIdProgram(selectedKelas.program_id)
@@ -238,8 +321,15 @@ export default function KelasPage() {
             setNamaKelas(selectedKelas.class_name)
             setDeskripsiKelas(selectedKelas.class_description)
             setMetodePembelajaran(selectedKelas.learning_method)
+            setSelectedStudents(selectedKelas.participants || [])
         }
     }, [selectedKelas])
+
+    useEffect(() => {
+        if (manageStudentsModalOpen && selectedKelas) {
+            setSelectedStudents(selectedKelas.participants || []) // Set peserta saat modal dibuka
+        }
+    }, [manageStudentsModalOpen, selectedKelas])
 
     if (isLoading) {
         return (
@@ -374,7 +464,7 @@ export default function KelasPage() {
                                                 color="primary"
                                                 onClick={() => {
                                                     setSelectedKelas(item)
-                                                    setDeleteModalOpen(true)
+                                                    setManageStudentsModalOpen(true) // Buka modal Kelola Siswa
                                                 }}
                                             >
                                                 <PersonAdd />
@@ -482,6 +572,72 @@ export default function KelasPage() {
                     </Typography>
                     <Button variant="contained" color="error" fullWidth onClick={() => selectedKelas && handleDelete(selectedKelas.class_id)}>
                         Hapus
+                    </Button>
+                </Box>
+            </Modal>
+
+            <Modal open={manageStudentsModalOpen} onClose={handleCloseManageStudentsModal}>
+                <Box sx={modalBoxStyle}>
+                    <Typography variant="h5" mb={3}>
+                        Kelola Siswa pada kelas {selectedKelas?.class_name}
+                    </Typography>
+                    <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                            <Typography variant="h6">Semua Siswa</Typography>
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Nama</TableCell>
+                                            <TableCell>Aksi</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {allStudents.map((student) => (
+                                            <TableRow key={student.user_id}>
+                                                <TableCell>{student.user_name}</TableCell>
+                                                <TableCell>
+                                                    <Button variant="contained" onClick={() => handleAddStudent(student)}>
+                                                        &gt;
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography variant="h6">Siswa di Kelas</Typography>
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Nama</TableCell>
+                                            <TableCell>Aksi</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {selectedStudents.map((student) => (
+                                            <TableRow key={student.user_id}>
+                                                <TableCell>{student.user_name}</TableCell>
+                                                <TableCell>
+                                                    <Button variant="contained" onClick={() => handleRemoveStudent(student)}>
+                                                        &lt;
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Grid>
+                    </Grid>
+                    <Button variant="contained" color="primary" onClick={handleSaveStudents}>
+                        Simpan
+                    </Button>
+                    <Button variant="outlined" onClick={handleCloseManageStudentsModal}>
+                        Batal
                     </Button>
                 </Box>
             </Modal>
