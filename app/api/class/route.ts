@@ -27,7 +27,6 @@ export async function GET() {
     try {
         const { data, error } = await supabase.rpc('get_classes_with_programs_and_batches')
         if (error) throw error
-        console.log(data)
         return NextResponse.json(data)
     } catch (error) {
         console.error(error)
