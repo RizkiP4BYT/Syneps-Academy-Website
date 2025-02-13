@@ -9,6 +9,13 @@ interface Classes {
     class_description: string
     learning_method: string
     created_at: string
+    syllabuses: [
+        {
+            syllabus_id: string
+            syllabus_name: string
+            minimum_criteria: number
+        }
+    ]
     Programs: {
         program_id: number
         program_name: string
@@ -27,6 +34,7 @@ export async function GET() {
     try {
         const { data, error } = await supabase.rpc('get_classes_with_programs_and_batches')
         if (error) throw error
+        console.log(data.Classes[0].participants[0])
         return NextResponse.json(data)
     } catch (error) {
         console.error(error)
@@ -38,10 +46,10 @@ export async function POST(request: Request) {
     const supabase = await createClient()
     const body: Classes = await request.json()
 
-    if (!body.program_id || !body.batch_id || !body.class_name || !body.class_description || !body.learning_method) {
+    if (!body.program_id || !body.batch_id || !body.class_name || !body.class_description || !body.learning_method || !body.syllabuses) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'program_id', 'batch_id', 'class_name', 'class_description', dan 'learning_method' untuk melanjutkan."
+                error: "Diperlukan 'program_id', 'batch_id', 'class_name', 'class_description', 'learning_method', dan 'syllabuses' untuk melanjutkan.",
             },
             { status: 400 }
         )
@@ -62,10 +70,10 @@ export async function PUT(request: Request) {
     const supabase = await createClient()
     const body: Classes = await request.json()
 
-    if (!body.program_id || !body.batch_id || !body.class_name || !body.class_description || !body.learning_method) {
+    if (!body.program_id || !body.batch_id || !body.class_name || !body.class_description || !body.learning_method || !body.syllabuses) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'program_id', 'batch_id', 'class_name', 'class_description', dan 'learning_method' untuk melanjutkan."
+                error: "Diperlukan 'program_id', 'batch_id', 'class_name', 'class_description', dan 'learning_method' untuk melanjutkan.",
             },
             { status: 400 }
         )
