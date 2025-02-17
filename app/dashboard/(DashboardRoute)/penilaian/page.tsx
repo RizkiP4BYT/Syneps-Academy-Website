@@ -23,7 +23,7 @@ import {
     Select,
     MenuItem,
     InputLabel,
-    FormControl,
+    FormControl
 } from '@mui/material'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import React, { FormEvent, useEffect, useState } from 'react'
@@ -71,7 +71,6 @@ interface Syllabuses {
 
 interface Scores {
     score: number
-    user_id: string
     score_id: string
     syllabus_id: string
 }
@@ -89,6 +88,7 @@ export default function PenilaianPage() {
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
+    const [selectedClass, setSelectedClass] = useState<Class | null>(null)
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
     const [modalOpen, setModalOpen] = useState(false)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
@@ -102,29 +102,14 @@ export default function PenilaianPage() {
     const {
         data: classesData = { Classes: [], Programs: [], Batches: [], Syllabuses: [], Scores: [] },
         isLoading: isLoadingClasses,
-        isError: isErrorClasses,
+        isError: isErrorClasses
     } = useQuery<ClassesData>({
         queryKey: ['Classes'],
         queryFn: async () => {
             const res = await fetch('/api/class')
             if (!res.ok) throw new Error('Gagal memuat data kelas')
             return res.json()
-        },
-    })
-
-    const {
-        data: scoresData = [],
-        isLoading: isLoadingScores,
-        isError: isErrorScores,
-    } = useQuery<Scores[]>({
-        queryKey: ['Scores', selectedClassId],
-        queryFn: async () => {
-            if (!selectedClassId) return []
-            const res = await fetch(`/api/score?class_id=${selectedClassId}`)
-            if (!res.ok) throw new Error('Gagal memuat data nilai')
-            return res.json()
-        },
-        enabled: !!selectedClassId,
+        }
     })
 
     const mutation = useMutation({
@@ -133,13 +118,13 @@ export default function PenilaianPage() {
             const res = await fetch('/api/score', {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(score),
+                body: JSON.stringify(score)
             })
             if (!res.ok) throw new Error(await res.json().then((data) => data.error))
             return res.json()
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['Scores', selectedClassId] })
+            queryClient.invalidateQueries({ queryKey: ['Classes', selectedClassId] })
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
             setSnackbarMessage('Nilai berhasil disimpan')
@@ -149,7 +134,7 @@ export default function PenilaianPage() {
             setSnackbarOpen(true)
             setSnackbarSeverity('error')
             setSnackbarMessage(error.message || 'Gagal menyimpan nilai')
-        },
+        }
     })
 
     const deleteMutation = useMutation({
@@ -157,13 +142,13 @@ export default function PenilaianPage() {
             const res = await fetch('/api/score', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ score_id }),
+                body: JSON.stringify({ score_id })
             })
             if (!res.ok) throw new Error(await res.json().then((data) => data.error))
             return res.json()
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['Scores', selectedClassId] })
+            queryClient.invalidateQueries({ queryKey: ['Classes', selectedClassId] })
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
             setSnackbarMessage('Nilai berhasil dihapus')
@@ -173,16 +158,15 @@ export default function PenilaianPage() {
             setSnackbarOpen(true)
             setSnackbarSeverity('error')
             setSnackbarMessage(error.message || 'Gagal menghapus nilai')
-        },
+        }
     })
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault()
         mutation.mutate({
             score_id: selectedScore?.score_id,
-            user_id: selectedScore?.user_id, // Assuming user_id is set elsewhere
             syllabus_id: syllabusId,
-            score: score,
+            score: score
         })
     }
 
@@ -209,7 +193,14 @@ export default function PenilaianPage() {
         }
     }, [selectedScore])
 
-    if (isLoadingClasses || isLoadingScores) {
+    useEffect(() => {
+        if (selectedClassId) {
+            const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
+            setSelectedClass(classData!)
+        }
+    }, [selectedClassId])
+
+    if (isLoadingClasses) {
         return (
             <Box p={isMobile ? 2 : 4}>
                 <Skeleton variant="text" width={200} height={40} />
@@ -262,7 +253,7 @@ export default function PenilaianPage() {
             </Box>
         )
     }
-    if (isErrorClasses || isErrorScores) return <div>Terjadi kesalahan saat memuat data</div>
+    if (isErrorClasses) return <div>Terjadi kesalahan saat memuat data</div>
 
     return (
         <Box p={isMobile ? 2 : 4}>
@@ -292,59 +283,64 @@ export default function PenilaianPage() {
                         <TableRow>
                             <TableCell>No.</TableCell>
                             <TableCell>Siswa</TableCell>
-                            {selectedClassId ? (
-                                classesData.Classes.find((cl) => cl.class_id === selectedClassId)!.syllabuses.map((syllabus) => (
-                                    <TableCell key={syllabus.syllabus_id}>{syllabus.syllabus_name}</TableCell>
-                                ))
-                            ) : (
-                                <TableCell>Silabus</TableCell>
-                            )}
+                            {selectedClassId ? selectedClass?.syllabuses.map((syllabus) => <TableCell key={syllabus.syllabus_id}>{syllabus.syllabus_name}</TableCell>) : <TableCell>Silabus</TableCell>}
                             <TableCell>Nilai Akhir</TableCell>
                             <TableCell>Aksi</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {scoresData.length === 0 ? (
+                        {!selectedClass ? (
                             <TableRow>
                                 <TableCell colSpan={5} align="center">
                                     <Typography variant="body1" color="textSecondary">
-                                        Tidak ada data penilaian tersedia.
+                                        Kelas belum dipilih
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        ) : selectedClass?.participants.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} align="center">
+                                    <Typography variant="body1" color="textSecondary">
+                                        Tidak ada peserta pada kelas ini
                                     </Typography>
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            scoresData.map((score, index) => (
-                                <TableRow key={score.score_id}>
+                            selectedClass?.participants.map((cp, index) => (
+                                <TableRow key={cp.user_id}>
                                     <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{classesData.Classes.find((cl) => cl.class_id === selectedClassId)!.participants.find((p) => p.user_id === score.user_id)?.user_name}</TableCell>
+                                    <TableCell>{cp.user_name}</TableCell>
                                     {selectedClassId ? (
-                                        classesData.Classes.find((cl) => cl.class_id === selectedClassId)!.participants.map((participant) =>
-                                            participant.scores.map((scores) => <TableCell key={scores.score_id}>{scores.score ?? 0}</TableCell>)
-                                        )
+                                        selectedClass.syllabuses.map((syllabus) => (
+                                            <TableCell key={syllabus.syllabus_id}>{cp.scores?.find((score) => score.syllabus_id === syllabus.syllabus_id)?.score ?? 0}</TableCell>
+                                        ))
                                     ) : (
                                         <TableCell>Silabus</TableCell>
                                     )}
-                                    <TableCell>{score.score}</TableCell>
+                                    <TableCell>{cp.scores?.reduce((acc, score) => acc + score.score, 0) ?? 0}</TableCell>
                                     <TableCell>
                                         <ButtonGroup variant="contained" size={isMobile ? 'small' : 'medium'}>
-                                            <Button
-                                                color="info"
-                                                onClick={() => {
-                                                    setSelectedScore(score)
-                                                    setModalOpen(true)
-                                                }}
-                                            >
-                                                <Edit />
-                                            </Button>
-                                            <Button
-                                                color="error"
-                                                onClick={() => {
-                                                    setSelectedScore(score)
-                                                    setDeleteModalOpen(true)
-                                                }}
-                                            >
-                                                <Delete />
-                                            </Button>
+                                            {!cp.scores ? (
+                                                <Button
+                                                    color="info"
+                                                    onClick={() => {
+                                                        setSelectedScore(null)
+                                                        setModalOpen(true)
+                                                    }}
+                                                >
+                                                    <Add />
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    color="info"
+                                                    onClick={() => {
+                                                        setSelectedScore(cp.scores?.[0] || null)
+                                                        setModalOpen(true)
+                                                    }}
+                                                >
+                                                    <Edit />
+                                                </Button>
+                                            )}
                                         </ButtonGroup>
                                     </TableCell>
                                 </TableRow>
@@ -354,51 +350,14 @@ export default function PenilaianPage() {
                 </Table>
             </TableContainer>
 
-            {/* <Modal open={modalOpen} onClose={handleClose}>
+            <Modal open={modalOpen} onClose={handleClose}>
                 <Box sx={{ p: 4 }} component="form" onSubmit={handleSubmit}>
                     <Typography variant="h5" mb={3}>
                         {selectedScore ? 'Edit Nilai' : 'Buat Nilai Baru'}
                     </Typography>
-                    <FormControl fullWidth sx={{ mb: 3 }}>
-                        <InputLabel id="select-syllabus-label">Pilih Silabus</InputLabel>
-                        <Select
-                            labelId="select-syllabus-label"
-                            value={syllabusId}
-                            onChange={(e) => setSyllabusId(e.target.value)}
-                            required
-                        >
-                            {selectedClassId && classesData.find(c => c.class_id === selectedClassId)?.syllabuses.map((syllabus) => (
-                                <MenuItem key={syllabus.syllabus_id} value={syllabus.syllabus_id}>
-                                    {syllabus.syllabus_name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <CustomTextField
-                        label="Nilai"
-                        type="number"
-                        value={score}
-                        onChange={(e) => setScore(Number(e.target.value))}
-                        fullWidth
-                        required
-                        sx={{ mb: 3 }}
-                    />
+                    {/* Masukkan nama yang dipilih */}
                     <Button type="submit" variant="contained" fullWidth disabled={mutation.isPending}>
                         {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
-                    </Button>
-                </Box>
-            </Modal> */}
-
-            <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
-                <Box sx={{ p: 4 }}>
-                    <Typography variant="h5" mb={3}>
-                        Hapus Nilai
-                    </Typography>
-                    <Typography variant="body1" mb={3}>
-                        Apakah Anda yakin ingin menghapus nilai ini?
-                    </Typography>
-                    <Button variant="contained" color="error" fullWidth onClick={() => selectedScore && handleDelete(selectedScore.score_id)}>
-                        Hapus
                     </Button>
                 </Box>
             </Modal>
