@@ -1,42 +1,42 @@
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
-export async function GET(request: Request) {
-    const supabase = await createClient()
-    const class_id = new URL(request.url).searchParams.get('class_id')
-
-    try {
-        const { data, error } = await supabase.from('Scores').select('*').eq('class_id', class_id).order('user_id', { ascending: true })
-
-        if (error) throw error
-        return NextResponse.json(data)
-    } catch (error) {
-        console.error(error)
-        return NextResponse.json({ error: 'Gagal mengambil data program' }, { status: 500 })
-    }
+interface Scores {
+    score: number
+    score_id: string
+    syllabus_id: string
+    class_id: string
 }
 
 export async function POST(request: Request) {
     const supabase = await createClient()
     const body = await request.json()
 
-    if (!body.program_name || !body.program_description) {
+    if (!body.scores || body.scores.length === 0) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'program_name', dan 'program_description' untuk melanjutkan.",
+                error: "Diperlukan 'scores' untuk melanjutkan pengisian nilai.",
             },
             { status: 400 }
         )
     }
+    const scores: Scores[] = body.scores
 
     try {
-        const { data, error } = await supabase.from('Programs').insert([body]).select()
+        const { data, error } = await supabase
+            .from('Scores')
+            .insert(
+                scores.map((score) => {
+                    score.syllabus_id, score.score, score.class_id
+                })
+            )
+            .select()
 
         if (error) throw error
-        return NextResponse.json(data[0])
+        return NextResponse.json(data)
     } catch (error) {
         console.error(error)
-        return NextResponse.json({ error: 'Gagal membuat program' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal menambahkan nilai' }, { status: 500 })
     }
 }
 
@@ -44,17 +44,25 @@ export async function PUT(request: Request) {
     const supabase = await createClient()
     const body = await request.json()
 
-    if (!body.program_id || !body.program_name || !body.program_description) {
+    if (!body.scores || body.scores.length === 0) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'program_id', 'program_name', dan 'program_description' untuk melanjutkan.",
+                error: "Diperlukan 'scores' untuk melanjutkan pengisian nilai.",
             },
             { status: 400 }
         )
     }
+    const scores: Scores[] = body.scores
 
     try {
-        const { data, error } = await supabase.from('Programs').update(body).eq('program_id', body.program_id).select()
+        const { data, error } = await supabase
+            .from('Scores')
+            .upsert(
+                scores.map((score) => {
+                    score.score_id, score.syllabus_id, score.score, score.class_id
+                })
+            )
+            .select()
 
         if (error) throw error
         return NextResponse.json(data[0])
@@ -72,7 +80,7 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: "Kamu harus memasukkan 'program_id' untuk penghapusan" }, { status: 400 })
     }
     try {
-        const { error } = await supabase.from('Programs').delete().eq('program_id', program_id)
+        const { error } = await supabase.from('S').delete().eq('program_id', program_id)
 
         if (error) throw error
         return NextResponse.json({ success: true })

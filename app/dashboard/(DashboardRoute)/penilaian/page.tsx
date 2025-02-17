@@ -23,7 +23,7 @@ import {
     Select,
     MenuItem,
     InputLabel,
-    FormControl
+    FormControl,
 } from '@mui/material'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import React, { FormEvent, useEffect, useState } from 'react'
@@ -46,7 +46,6 @@ interface Class {
         score: number
         score_id: string
         syllabus_id: string
-        class_id: string
     }
 }
 
@@ -73,6 +72,11 @@ interface Scores {
     score: number
     score_id: string
     syllabus_id: string
+    class_id: string
+}
+
+interface ScoresAPI {
+    scores: Scores[]
 }
 
 interface ClassesData {
@@ -90,35 +94,33 @@ export default function PenilaianPage() {
 
     const [selectedClass, setSelectedClass] = useState<Class | null>(null)
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
+    const [selectedParticipant, setSelectedParticipant] = useState<Scores[]>()
     const [modalOpen, setModalOpen] = useState(false)
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-    const [selectedScore, setSelectedScore] = useState<Scores | null>(null)
-    const [snackbarOpen, setSnackbarOpen] = useState(false)
+    const [snackbarOpen, setSnackbarOpen] = useState(false)s
     const [snackbarMessage, setSnackbarMessage] = useState('')
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info')
-    const [score, setScore] = useState<number | undefined>(undefined)
-    const [syllabusId, setSyllabusId] = useState<string>('')
+    const [editMode, setEditMode] = useState<boolean>(false)
 
     const {
         data: classesData = { Classes: [], Programs: [], Batches: [], Syllabuses: [], Scores: [] },
         isLoading: isLoadingClasses,
-        isError: isErrorClasses
+        isError: isErrorClasses,
     } = useQuery<ClassesData>({
         queryKey: ['Classes'],
         queryFn: async () => {
             const res = await fetch('/api/class')
             if (!res.ok) throw new Error('Gagal memuat data kelas')
             return res.json()
-        }
+        },
     })
 
     const mutation = useMutation({
-        mutationFn: async (score: Partial<Scores>) => {
-            const method = score.score_id ? 'PUT' : 'POST'
+        mutationFn: async (score: Partial<ScoresAPI>) => {
+            const method = editMode ? 'PUT' : 'POST'
             const res = await fetch('/api/score', {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(score)
+                body: JSON.stringify(score),
             })
             if (!res.ok) throw new Error(await res.json().then((data) => data.error))
             return res.json()
@@ -134,64 +136,20 @@ export default function PenilaianPage() {
             setSnackbarOpen(true)
             setSnackbarSeverity('error')
             setSnackbarMessage(error.message || 'Gagal menyimpan nilai')
-        }
-    })
-
-    const deleteMutation = useMutation({
-        mutationFn: async (score_id: string) => {
-            const res = await fetch('/api/score', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ score_id })
-            })
-            if (!res.ok) throw new Error(await res.json().then((data) => data.error))
-            return res.json()
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['Classes', selectedClassId] })
-            setSnackbarOpen(true)
-            setSnackbarSeverity('success')
-            setSnackbarMessage('Nilai berhasil dihapus')
-            handleCloseDeleteModal()
-        },
-        onError: (error) => {
-            setSnackbarOpen(true)
-            setSnackbarSeverity('error')
-            setSnackbarMessage(error.message || 'Gagal menghapus nilai')
-        }
     })
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault()
         mutation.mutate({
-            score_id: selectedScore?.score_id,
-            syllabus_id: syllabusId,
-            score: score
+scores: selectedParticipant
         })
-    }
-
-    const handleDelete = (score_id: string) => {
-        deleteMutation.mutate(score_id)
     }
 
     const handleClose = () => {
         setModalOpen(false)
-        setSelectedScore(null)
-        setScore(undefined)
-        setSyllabusId('')
+        setSelectedParticipant(undefined)
     }
-
-    const handleCloseDeleteModal = () => {
-        setDeleteModalOpen(false)
-        setSelectedScore(null)
-    }
-
-    useEffect(() => {
-        if (selectedScore) {
-            setScore(selectedScore.score)
-            setSyllabusId(selectedScore.syllabus_id)
-        }
-    }, [selectedScore])
 
     useEffect(() => {
         if (selectedClassId) {
@@ -263,9 +221,9 @@ export default function PenilaianPage() {
                     <Typography variant="body1">Manajemen penilaian siswa</Typography>
                 </Grid2>
                 <Grid2>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth sx={{ width: '20rem' }}>
                         <InputLabel id="select-class-label">Pilih Kelas</InputLabel>
-                        <Select labelId="select-class-label" value={selectedClassId || ''} onChange={(e) => setSelectedClassId(e.target.value)}>
+                        <Select labelId="select-class-label" value={selectedClassId || ''} onChange={(e) => setSelectedClassId(e.target.value)} fullWidth>
                             {classesData.Classes.map((item) => (
                                 <MenuItem key={item.class_id} value={item.class_id}>
                                     Batch {classesData.Batches.find((batch) => batch.batch_id === item.batch_id)?.batch_number}{' '}
@@ -324,7 +282,8 @@ export default function PenilaianPage() {
                                                 <Button
                                                     color="info"
                                                     onClick={() => {
-                                                        setSelectedScore(null)
+                                                        setEditMode(false)
+                                                        setSelectedParticipant(undefined)
                                                         setModalOpen(true)
                                                     }}
                                                 >
@@ -334,7 +293,7 @@ export default function PenilaianPage() {
                                                 <Button
                                                     color="info"
                                                     onClick={() => {
-                                                        setSelectedScore(cp.scores?.[0] || null)
+                                                        setSelectedParticipant(cp.scores)
                                                         setModalOpen(true)
                                                     }}
                                                 >
@@ -351,11 +310,55 @@ export default function PenilaianPage() {
             </TableContainer>
 
             <Modal open={modalOpen} onClose={handleClose}>
-                <Box sx={{ p: 4 }} component="form" onSubmit={handleSubmit}>
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: isMobile ? '90%' : '50%',
+                        bgcolor: 'background.paper',
+                        boxShadow: 24,
+                        p: 4,
+                        borderRadius: 2,
+                    }}
+                    component="form"
+                    onSubmit={handleSubmit}
+                >
                     <Typography variant="h5" mb={3}>
                         {selectedScore ? 'Edit Nilai' : 'Buat Nilai Baru'}
                     </Typography>
-                    {/* Masukkan nama yang dipilih */}
+
+                    {/* Tampilkan Nama Siswa */}
+                    {selectedScore && (
+                        <Typography variant="body1" mb={3}>
+                            Nama Siswa: {selectedClass?.participants.find((cp) => cp.scores?.some((score) => score.score_id === selectedScore.score_id))?.user_name}
+                        </Typography>
+                    )}
+
+                    {/* Input Nilai untuk Setiap Silabus */}
+                    {selectedClass?.syllabuses.map((syllabus) => (
+                        <CustomTextField
+                            key={syllabus.syllabus_id}
+                            label={syllabus.syllabus_name}
+                            type="number"
+                            value={
+                                selectedScore?.syllabus_id === syllabus.syllabus_id
+                                    ? score
+                                    : selectedClass?.participants
+                                          .find((cp) => cp.scores?.some((score) => score.syllabus_id === syllabus.syllabus_id))
+                                          ?.scores?.find((score) => score.syllabus_id === syllabus.syllabus_id)?.score || 0
+                            }
+                            onChange={(e) => {
+                                setScore(Number(e.target.value))
+                                setSyllabusId(syllabus.syllabus_id)
+                            }}
+                            fullWidth
+                            sx={{ mb: 2 }}
+                        />
+                    ))}
+
+                    {/* Tombol Simpan */}
                     <Button type="submit" variant="contained" fullWidth disabled={mutation.isPending}>
                         {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
                     </Button>
