@@ -14,7 +14,7 @@ import {
     TableHead,
     TableRow,
     Typography,
-    Grid,
+    Grid2,
     useMediaQuery,
     useTheme,
     Select,
@@ -369,15 +369,15 @@ export default function KelasPage() {
     if (isLoading) {
         return (
             <Box p={isMobile ? 2 : 4}>
-                <Grid container justifyContent="space-between" alignItems="center" mb={3}>
-                    <Grid>
+                <Grid2 container justifyContent="space-between" alignItems="center" mb={3}>
+                    <Grid2>
                         <Skeleton variant="text" width={200} height={40} />
                         <Skeleton variant="text" width={300} height={20} />
-                    </Grid>
-                    <Grid>
+                    </Grid2>
+                    <Grid2>
                         <Skeleton variant="rectangular" width={150} height={40} />
-                    </Grid>
-                </Grid>
+                    </Grid2>
+                </Grid2>
 
                 <TableContainer>
                     <Table sx={{ minWidth: isMobile ? 300 : 650 }}>
@@ -424,12 +424,12 @@ export default function KelasPage() {
 
     return (
         <Box p={isMobile ? 2 : 4}>
-            <Grid container justifyContent="space-between" alignItems="center" mb={3}>
-                <Grid>
+            <Grid2 container justifyContent="space-between" alignItems="center" mb={3}>
+                <Grid2>
                     <Typography variant="h4">Kelas</Typography>
                     <Typography variant="body1">Manajemen kelas Syneps Academy</Typography>
-                </Grid>
-                <Grid>
+                </Grid2>
+                <Grid2>
                     <Button
                         variant="contained"
                         startIcon={<Add />}
@@ -440,8 +440,8 @@ export default function KelasPage() {
                     >
                         Tambah Kelas
                     </Button>
-                </Grid>
-            </Grid>
+                </Grid2>
+            </Grid2>
 
             <TableContainer>
                 <Table sx={{ minWidth: isMobile ? 300 : 650 }}>
@@ -627,8 +627,8 @@ export default function KelasPage() {
                     <Typography variant="h5" mb={3}>
                         Kelola Siswa pada kelas {selectedKelas?.class_name}
                     </Typography>
-                    <Grid container spacing={2}>
-                        <Grid item xs={6}>
+                    <Grid2 container spacing={2}>
+                        <Grid2 sx={{xs:6}}>
                             <Typography variant="h6">Semua Siswa</Typography>
                             <TableContainer>
                                 <Table>
@@ -652,8 +652,8 @@ export default function KelasPage() {
                                     </TableBody>
                                 </Table>
                             </TableContainer>
-                        </Grid>
-                        <Grid item xs={6}>
+                        </Grid2>
+                        <Grid2 sx={{xs:6}}>
                             <Typography variant="h6">Siswa di Kelas</Typography>
                             <TableContainer>
                                 <Table>
@@ -677,8 +677,8 @@ export default function KelasPage() {
                                     </TableBody>
                                 </Table>
                             </TableContainer>
-                        </Grid>
-                    </Grid>
+                        </Grid2>
+                    </Grid2>
                     <Button variant="contained" color="primary" onClick={handleSaveStudents}>
                         Simpan
                     </Button>

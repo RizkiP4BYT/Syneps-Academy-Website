@@ -3,7 +3,7 @@
 import CustomSnackbar from '@/app/components/CustomSnackbar'
 import CustomTextField from '@/app/components/CustomTextField'
 import { Delete, Edit, Add } from '@mui/icons-material'
-import { Box, Button, ButtonGroup, IconButton, Modal, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Grid, useMediaQuery, useTheme, Skeleton } from '@mui/material'
+import { Box, Button, ButtonGroup, Modal, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Grid2, useMediaQuery, useTheme, Skeleton } from '@mui/material'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import React, { FormEvent, useEffect, useState } from 'react'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
@@ -152,15 +152,15 @@ export default function BatchPage() {
     if (isLoading) {
         return (
             <Box p={isMobile ? 2 : 4}>
-                <Grid container justifyContent="space-between" alignItems="center" mb={3}>
-                    <Grid item>
+                <Grid2 container justifyContent="space-between" alignItems="center" mb={3}>
+                    <Grid2>
                         <Skeleton variant="text" width={200} height={40} />
                         <Skeleton variant="text" width={300} height={20} />
-                    </Grid>
-                    <Grid item>
+                    </Grid2>
+                    <Grid2>
                         <Skeleton variant="rectangular" width={150} height={40} />
-                    </Grid>
-                </Grid>
+                    </Grid2>
+                </Grid2>
 
                 <TableContainer>
                     <Table sx={{ minWidth: isMobile ? 300 : 650 }}>
@@ -207,12 +207,12 @@ export default function BatchPage() {
 
     return (
         <Box p={isMobile ? 2 : 4}>
-            <Grid container justifyContent="space-between" alignItems="center" mb={3}>
-                <Grid item>
+            <Grid2 container justifyContent="space-between" alignItems="center" mb={3}>
+                <Grid2>
                     <Typography variant="h4">Batch</Typography>
                     <Typography variant="body1">Manajemen batch Syneps Academy</Typography>
-                </Grid>
-                <Grid item>
+                </Grid2>
+                <Grid2>
                     <Button
                         variant="contained"
                         startIcon={<Add />}
@@ -223,8 +223,8 @@ export default function BatchPage() {
                     >
                         Tambah Batch
                     </Button>
-                </Grid>
-            </Grid>
+                </Grid2>
+            </Grid2>
 
             <TableContainer>
                 <Table sx={{ minWidth: isMobile ? 300 : 650 }}>
