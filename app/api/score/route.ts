@@ -15,22 +15,16 @@ export async function POST(request: Request) {
     if (!body.scores || body.scores.length === 0) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'scores' untuk melanjutkan pengisian nilai.",
+                error: "Diperlukan 'scores' untuk melanjutkan pengisian nilai."
             },
             { status: 400 }
         )
     }
     const scores: Scores[] = body.scores
 
+    console.log(scores)
     try {
-        const { data, error } = await supabase
-            .from('Scores')
-            .insert(
-                scores.map((score) => {
-                    score.syllabus_id, score.score, score.class_id
-                })
-            )
-            .select()
+        const { data, error } = await supabase.from('Scores').insert(scores).select()
 
         if (error) throw error
         return NextResponse.json(data)
@@ -47,7 +41,7 @@ export async function PUT(request: Request) {
     if (!body.scores || body.scores.length === 0) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'scores' untuk melanjutkan pengisian nilai.",
+                error: "Diperlukan 'scores' untuk melanjutkan pengisian nilai."
             },
             { status: 400 }
         )
@@ -55,14 +49,7 @@ export async function PUT(request: Request) {
     const scores: Scores[] = body.scores
 
     try {
-        const { data, error } = await supabase
-            .from('Scores')
-            .upsert(
-                scores.map((score) => {
-                    score.score_id, score.syllabus_id, score.score, score.class_id
-                })
-            )
-            .select()
+        const { data, error } = await supabase.from('Scores').upsert(scores).select()
 
         if (error) throw error
         return NextResponse.json(data[0])
