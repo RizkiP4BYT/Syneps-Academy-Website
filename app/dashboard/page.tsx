@@ -1,9 +1,9 @@
-import { Box, Grid2 } from "@mui/material";
+import { Box } from "@mui/material";
 
 export default function HomeDashboard() {
   return (
     <Box>
-      <h1>Hello, world! I'm ready to be edited ^-^</h1>
+      <h1>Hello, world! I&apos;m ready to be edited ^-^</h1>
     </Box>
   );
 }

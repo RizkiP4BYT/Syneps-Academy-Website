@@ -158,12 +158,12 @@ export default function PenilaianPage() {
             const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
             setSelectedClass(classData!)
         }
-    }, [selectedClassId])
+    }, [classesData.Classes, selectedClassId])
 
     useEffect(() => {
         const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
             setSelectedClass(classData!)
-    }, [classesData])
+    }, [classesData, selectedClassId])
 
     if (isLoadingClasses) {
         return (
