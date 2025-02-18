@@ -70,7 +70,8 @@ interface Syllabuses {
 
 interface Scores {
     score: number
-    score_id: string
+    score_id?: string
+    user_id: string
     syllabus_id: string
     class_id: string
 }
@@ -94,6 +95,7 @@ export default function PenilaianPage() {
 
     const [selectedClass, setSelectedClass] = useState<Class | null>(null)
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
+    const [participantName, setParticipantName] = useState<string | null>(null)
     const [selectedParticipant, setSelectedParticipant] = useState<Scores[]>([])
     const [modalOpen, setModalOpen] = useState(false)
     const [snackbarOpen, setSnackbarOpen] = useState(false)
@@ -126,7 +128,9 @@ export default function PenilaianPage() {
             return res.json()
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['Classes', selectedClassId] })
+            queryClient.invalidateQueries({ queryKey: ['Classes'] })
+            const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
+            setSelectedClass(classData!)
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
             setSnackbarMessage('Nilai berhasil disimpan')
@@ -148,6 +152,7 @@ export default function PenilaianPage() {
 
     const handleClose = () => {
         setModalOpen(false)
+        setParticipantName(null)
         setSelectedParticipant([])
     }
 
@@ -157,6 +162,12 @@ export default function PenilaianPage() {
             setSelectedClass(classData!)
         }
     }, [selectedClassId])
+
+    useEffect(() => {
+        console.log('Classes Data Updated:', classesData)
+    }, [classesData])
+
+    console.log(selectedParticipant)
 
     if (isLoadingClasses) {
         return (
@@ -255,7 +266,7 @@ export default function PenilaianPage() {
                                     </Typography>
                                 </TableCell>
                             </TableRow>
-                        ) : selectedClass?.participants.length === 0 ? (
+                        ) : !selectedClass?.participants ? (
                             <TableRow>
                                 <TableCell colSpan={5} align="center">
                                     <Typography variant="body1" color="textSecondary">
@@ -283,11 +294,12 @@ export default function PenilaianPage() {
                                                     color="info"
                                                     onClick={() => {
                                                         setEditMode(false)
+                                                        setParticipantName(cp.user_name)
                                                         setSelectedParticipant(
                                                             selectedClass?.syllabuses.map((syllabus) => ({
                                                                 score: 0,
-                                                                score_id: '',
                                                                 syllabus_id: syllabus.syllabus_id,
+                                                                user_id: cp.user_id,
                                                                 class_id: selectedClass.class_id
                                                             }))
                                                         )
@@ -301,7 +313,13 @@ export default function PenilaianPage() {
                                                     color="info"
                                                     onClick={() => {
                                                         setEditMode(true)
-                                                        setSelectedParticipant(cp.scores)
+                                                        setParticipantName(cp.user_name)
+                                                        setSelectedParticipant(
+                                                            cp.scores.map((score) => ({
+                                                                ...score,
+                                                                user_id: cp.user_id
+                                                            }))
+                                                        )
                                                         setModalOpen(true)
                                                     }}
                                                 >
@@ -317,56 +335,59 @@ export default function PenilaianPage() {
                 </Table>
             </TableContainer>
 
-            <Modal open={modalOpen} onClose={handleClose}>
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: isMobile ? '90%' : '50%',
-                        bgcolor: 'background.paper',
-                        boxShadow: 24,
-                        p: 4,
-                        borderRadius: 2
-                    }}
-                    component="form"
-                    onSubmit={handleSubmit}
-                >
-                    <Typography variant="h5" mb={3}>
-                        {editMode ? 'Edit Nilai' : 'Buat Nilai Baru'}
-                    </Typography>
-
-                    {/* Tampilkan Nama Siswa */}
-                    {selectedParticipant && (
-                        <Typography variant="body1" mb={3}>
-                            Nama Siswa: {selectedClass?.participants.find((cp) => cp.scores?.some((score) => score.score_id === selectedParticipant[0].score_id))?.user_name}
+            {selectedClass?.participants && (
+                <Modal open={modalOpen} onClose={handleClose}>
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: isMobile ? '90%' : '50%',
+                            bgcolor: 'background.paper',
+                            boxShadow: 24,
+                            p: 4,
+                            borderRadius: 2
+                        }}
+                        component="form"
+                        onSubmit={handleSubmit}
+                    >
+                        <Typography variant="h5" mb={3}>
+                            {editMode ? 'Edit Nilai' : 'Buat Nilai Baru'}
                         </Typography>
-                    )}
 
-                    {/* Input Nilai untuk Setiap Silabus */}
-                    {selectedClass?.syllabuses.map((syllabus) => (
-                        <CustomTextField
-                            key={syllabus.syllabus_id}
-                            label={syllabus.syllabus_name}
-                            type="number"
-                            value={selectedParticipant.find((score) => score.syllabus_id === syllabus.syllabus_id)?.score || ''}
-                            onChange={(e) => {
-                                setSelectedParticipant((prevScores) =>
-                                    prevScores.map((score) => (score.syllabus_id === syllabus.syllabus_id ? { ...score, score: Number(e.target.value) || 0 } : score))
-                                )
-                            }}
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        />
-                    ))}
+                        {/* Tampilkan Nama Siswa */}
+                        {selectedParticipant && (
+                            <Typography variant="body1" mb={3}>
+                                Nama Siswa: {participantName}
+                            </Typography>
+                        )}
 
-                    {/* Tombol Simpan */}
-                    <Button type="submit" variant="contained" fullWidth disabled={mutation.isPending}>
-                        {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
-                    </Button>
-                </Box>
-            </Modal>
+                        {/* Input Nilai untuk Setiap Silabus */}
+                        {selectedClass?.syllabuses.map((syllabus) => (
+                            <CustomTextField
+                                key={syllabus.syllabus_id}
+                                label={syllabus.syllabus_name}
+                                type="number"
+                                value={selectedParticipant.find((score) => score.syllabus_id === syllabus.syllabus_id)?.score || ''}
+                                onChange={(e) => {
+                                    setSelectedParticipant((prevScores) =>
+                                        prevScores.map((score) => (score.syllabus_id === syllabus.syllabus_id ? { ...score, score: Number(e.target.value) || 0 } : score))
+                                    )
+                                }}
+                                fullWidth
+                                required
+                                sx={{ mb: 2 }}
+                            />
+                        ))}
+
+                        {/* Tombol Simpan */}
+                        <Button type="submit" variant="contained" fullWidth disabled={mutation.isPending}>
+                            {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+                        </Button>
+                    </Box>
+                </Modal>
+            )}
 
             <CustomSnackbar open={snackbarOpen} onClose={() => setSnackbarOpen(false)} message={snackbarMessage} severity={snackbarSeverity} />
         </Box>
