@@ -94,7 +94,7 @@ export default function PenilaianPage() {
 
     const [selectedClass, setSelectedClass] = useState<Class | null>(null)
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
-    const [selectedParticipant, setSelectedParticipant] = useState<Scores[]>()
+    const [selectedParticipant, setSelectedParticipant] = useState<Scores[]>([])
     const [modalOpen, setModalOpen] = useState(false)
     const [snackbarOpen, setSnackbarOpen] = useState(false)
     const [snackbarMessage, setSnackbarMessage] = useState('')
@@ -148,7 +148,7 @@ export default function PenilaianPage() {
 
     const handleClose = () => {
         setModalOpen(false)
-        setSelectedParticipant(undefined)
+        setSelectedParticipant([])
     }
 
     useEffect(() => {
@@ -283,7 +283,14 @@ export default function PenilaianPage() {
                                                     color="info"
                                                     onClick={() => {
                                                         setEditMode(false)
-                                                        setSelectedParticipant(undefined)
+                                                        setSelectedParticipant(
+                                                            selectedClass?.syllabuses.map((syllabus) => ({
+                                                                score: 0,
+                                                                score_id: '',
+                                                                syllabus_id: syllabus.syllabus_id,
+                                                                class_id: selectedClass.class_id
+                                                            }))
+                                                        )
                                                         setModalOpen(true)
                                                     }}
                                                 >
@@ -333,7 +340,7 @@ export default function PenilaianPage() {
                     {/* Tampilkan Nama Siswa */}
                     {selectedParticipant && (
                         <Typography variant="body1" mb={3}>
-                            Nama Siswa: {selectedClass?.participants.find((cp) => cp.scores?.some((score) => score.score_id === selectedParticipant.score_id))?.user_name}
+                            Nama Siswa: {selectedClass?.participants.find((cp) => cp.scores?.some((score) => score.score_id === selectedParticipant[0].score_id))?.user_name}
                         </Typography>
                     )}
 
@@ -343,16 +350,11 @@ export default function PenilaianPage() {
                             key={syllabus.syllabus_id}
                             label={syllabus.syllabus_name}
                             type="number"
-                            value={
-                                selectedScore?.syllabus_id === syllabus.syllabus_id
-                                    ? score
-                                    : selectedClass?.participants
-                                          .find((cp) => cp.scores?.some((score) => score.syllabus_id === syllabus.syllabus_id))
-                                          ?.scores?.find((score) => score.syllabus_id === syllabus.syllabus_id)?.score || 0
-                            }
+                            value={selectedParticipant.find((score) => score.syllabus_id === syllabus.syllabus_id)?.score || ''}
                             onChange={(e) => {
-                                setScore(Number(e.target.value))
-                                setSyllabusId(syllabus.syllabus_id)
+                                setSelectedParticipant((prevScores) =>
+                                    prevScores.map((score) => (score.syllabus_id === syllabus.syllabus_id ? { ...score, score: Number(e.target.value) || 0 } : score))
+                                )
                             }}
                             fullWidth
                             sx={{ mb: 2 }}
