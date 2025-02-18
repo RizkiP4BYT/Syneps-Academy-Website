@@ -6,8 +6,6 @@ import {
   FormControlLabel,
   FormGroup,
   Stack,
-  styled,
-  TextField,
   Typography,
 } from "@mui/material";
 import Link from "next/link";
@@ -23,9 +21,9 @@ interface AuthFormProp {
 const AuthForm: React.FC<AuthFormProp> = ({ formOption }) => {
   if (formOption == "login") {
     const [loading, setLoading] = useState<boolean>(false);
-    const [rememberMe, setRememberMe] = useState(true);
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [rememberMe, setRememberMe] = useState<boolean>(true);
+    const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
+    const [snackbarMessage, setSnackbarMessage] = useState<string>("");
     const [snackbarSeverity, setSnackbarSeverity] = useState<
       "success" | "error" | "info" | "warning"
     >("info");

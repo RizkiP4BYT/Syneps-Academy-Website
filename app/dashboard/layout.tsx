@@ -2,12 +2,8 @@
 import {
   Box,
   Container,
-  Drawer,
-  IconButton,
   styled,
-  useMediaQuery,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
 import React, { useEffect, useState } from "react";
 import Header from "./layout/Header";
 import { Sidebar } from "react-pro-sidebar";

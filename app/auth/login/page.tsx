@@ -1,18 +1,11 @@
 import {
   Box,
   Card,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
   Grid2,
-  Stack,
-  styled,
-  TextField,
   Typography,
 } from "@mui/material";
 import { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import AuthForm from "../AuthForm";
 
 export const metadata: Metadata = {
