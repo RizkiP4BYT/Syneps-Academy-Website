@@ -23,7 +23,7 @@ import {
     Select,
     MenuItem,
     InputLabel,
-    FormControl,
+    FormControl
 } from '@mui/material'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import React, { FormEvent, useEffect, useState } from 'react'
@@ -37,16 +37,16 @@ interface Class {
     learning_method: string
     created_at: string
     participants: {
-        scores: { score: number; score_id: string; syllabus_id: string }[]
+        scores: {
+            score: number
+            score_id: string
+            syllabus_id: string
+            class_id: string
+        }[]
         user_id: string
         user_name: string
     }[]
     syllabuses: Syllabuses[]
-    scores: {
-        score: number
-        score_id: string
-        syllabus_id: string
-    }
 }
 
 interface Program {
@@ -96,7 +96,7 @@ export default function PenilaianPage() {
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
     const [selectedParticipant, setSelectedParticipant] = useState<Scores[]>()
     const [modalOpen, setModalOpen] = useState(false)
-    const [snackbarOpen, setSnackbarOpen] = useState(false)s
+    const [snackbarOpen, setSnackbarOpen] = useState(false)
     const [snackbarMessage, setSnackbarMessage] = useState('')
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info')
     const [editMode, setEditMode] = useState<boolean>(false)
@@ -104,14 +104,14 @@ export default function PenilaianPage() {
     const {
         data: classesData = { Classes: [], Programs: [], Batches: [], Syllabuses: [], Scores: [] },
         isLoading: isLoadingClasses,
-        isError: isErrorClasses,
+        isError: isErrorClasses
     } = useQuery<ClassesData>({
         queryKey: ['Classes'],
         queryFn: async () => {
             const res = await fetch('/api/class')
             if (!res.ok) throw new Error('Gagal memuat data kelas')
             return res.json()
-        },
+        }
     })
 
     const mutation = useMutation({
@@ -120,7 +120,7 @@ export default function PenilaianPage() {
             const res = await fetch('/api/score', {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(score),
+                body: JSON.stringify(score)
             })
             if (!res.ok) throw new Error(await res.json().then((data) => data.error))
             return res.json()
@@ -136,13 +136,13 @@ export default function PenilaianPage() {
             setSnackbarOpen(true)
             setSnackbarSeverity('error')
             setSnackbarMessage(error.message || 'Gagal menyimpan nilai')
-        },
+        }
     })
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault()
         mutation.mutate({
-scores: selectedParticipant
+            scores: selectedParticipant
         })
     }
 
@@ -293,6 +293,7 @@ scores: selectedParticipant
                                                 <Button
                                                     color="info"
                                                     onClick={() => {
+                                                        setEditMode(true)
                                                         setSelectedParticipant(cp.scores)
                                                         setModalOpen(true)
                                                     }}
@@ -320,19 +321,19 @@ scores: selectedParticipant
                         bgcolor: 'background.paper',
                         boxShadow: 24,
                         p: 4,
-                        borderRadius: 2,
+                        borderRadius: 2
                     }}
                     component="form"
                     onSubmit={handleSubmit}
                 >
                     <Typography variant="h5" mb={3}>
-                        {selectedScore ? 'Edit Nilai' : 'Buat Nilai Baru'}
+                        {editMode ? 'Edit Nilai' : 'Buat Nilai Baru'}
                     </Typography>
 
                     {/* Tampilkan Nama Siswa */}
-                    {selectedScore && (
+                    {selectedParticipant && (
                         <Typography variant="body1" mb={3}>
-                            Nama Siswa: {selectedClass?.participants.find((cp) => cp.scores?.some((score) => score.score_id === selectedScore.score_id))?.user_name}
+                            Nama Siswa: {selectedClass?.participants.find((cp) => cp.scores?.some((score) => score.score_id === selectedParticipant.score_id))?.user_name}
                         </Typography>
                     )}
 
