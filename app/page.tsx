@@ -13,10 +13,24 @@ export default function Home() {
     return (
         <div className={styles.page}>
             <main className={styles.main}>
-                <Image layout="fit" objectFit="cover" src="/assets/images/syn-logo-dark.svg" alt="Next.js logo" width={250} height={150} priority />
+                <div className={styles.imageWrapper}>
+                    <Image
+                        objectFit="cover"
+                        width="250"
+                        height="250"
+                        src="/assets/images/syn-logo-dark.svg"
+                        alt="Syneps Academy logo"
+                        priority
+                    />
+                </div>
                 <Link href={'/dashboard'}>
                     <Button fullWidth variant="contained">
                         Go To Dashboard!
+                    </Button>
+                </Link>
+                <Link href={'/registration'}>
+                    <Button fullWidth color='warning' variant="contained">
+                        Registration (Incomplete)
                     </Button>
                 </Link>
                 <ol>
