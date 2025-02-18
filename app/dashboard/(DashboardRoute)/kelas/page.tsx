@@ -72,7 +72,7 @@ interface Batch {
 interface User {
     user_id: string
     user_name: string
-    user_level: 'Siswa' | 'Pengajar' | 'Admin'
+    user_level?: 'Siswa' | 'Pengajar' | 'Admin'
 }
 
 interface Syllabuses {
@@ -209,13 +209,10 @@ export default function KelasPage() {
     const [snackbarOpen, setSnackbarOpen] = useState(false)
     const [snackbarMessage, setSnackbarMessage] = useState('')
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info')
+    const [allStudents, setAllStudents] = useState<User[]>([])
+    const [selectedStudents, setSelectedStudents] = useState<User[]>([])
 
-    console.log(silabus)
-    // State untuk Kelola Siswa
-    const [allStudents, setAllStudents] = useState<any[]>([])
-    const [selectedStudents, setSelectedStudents] = useState<any[]>([])
-
-    const { data: usersData = [], isLoading: isLoadingUsers } = useQuery<User[]>({
+    const { data: usersData = [] } = useQuery<User[]>({
         queryKey: ['Users'],
         queryFn: async () => {
             const res = await fetch('/api/user')
@@ -272,18 +269,18 @@ export default function KelasPage() {
         deleteMutation.mutate(class_id)
     }
 
-    const handleAddStudent = (student: any) => {
+    const handleAddStudent = (student: User) => {
         setSelectedStudents((prev) => [...prev, student])
         setAllStudents((prev) => prev.filter((s) => s.user_id !== student.user_id))
     }
 
-    const handleRemoveStudent = (student: any) => {
+    const handleRemoveStudent = (student: User) => {
         setSelectedStudents((prev) => prev.filter((s) => s.user_id !== student.user_id))
         setAllStudents((prev) => [...prev, student])
     }
 
     const saveStudentsMutation = useMutation({
-        mutationFn: async (data: { class_id: string; participants: any[] }) => {
+        mutationFn: async (data: { class_id: string; participants: User[] }) => {
             const response = await fetch('/api/participant', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -308,7 +305,7 @@ export default function KelasPage() {
 
     const handleSaveStudents = () => {
         saveStudentsMutation.mutate({
-            class_id: selectedKelas?.class_id!,
+            class_id: selectedKelas!.class_id,
             participants: selectedStudents,
         })
     }

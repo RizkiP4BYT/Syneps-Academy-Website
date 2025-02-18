@@ -3,10 +3,8 @@ import {
   AppBar,
   Box,
   IconButton,
-  Stack,
   styled,
   Toolbar,
-  useMediaQuery,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import Profile from "./Profile";

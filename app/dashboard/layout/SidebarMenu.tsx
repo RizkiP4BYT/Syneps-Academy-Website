@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Person as UserIcon, Book as ProgramIcon, Class as KelasIcon, List as SilabusIcon, Grade as PenilaianIcon, Share as ReferralIcon, ManageHistory as BatchIcon } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
-import { OverridableComponent } from "@mui/material/OverridableComponent";
 import { JSX } from "react";
 
 const SidebarMenu = () => {

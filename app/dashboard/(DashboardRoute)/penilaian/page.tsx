@@ -2,8 +2,7 @@
 
 import CustomSnackbar from '@/app/components/CustomSnackbar'
 import CustomTextField from '@/app/components/CustomTextField'
-import { createClient } from '@/utils/supabase/client'
-import { Delete, Edit, Add } from '@mui/icons-material'
+import { Edit, Add } from '@mui/icons-material'
 import {
     Box,
     Button,

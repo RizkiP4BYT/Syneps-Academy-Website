@@ -2,52 +2,10 @@
 import React, { Suspense, useEffect, useState } from 'react'
 import { Box, Menu, MenuItem, Switch, Typography, styled } from '@mui/material'
 import Image from 'next/image'
-// import Link from 'next/link'
-// import { Avatar, Box, Menu, Button, IconButton, MenuItem, ListItemIcon, ListItemText, Typography, styled } from '@mui/material'
-// // import fetchUser from '@/lib/fetchUser'
-// import { createClient } from '@/utils/supabase/server'
-// import ProfileMenu from '../../components/shared/ProfileMenu'
-// import ProfileImage from '../../components/shared/ProfileImage'
 import fetchUser from '@/lib/fetchUser'
 import { User } from '@supabase/supabase-js'
 import { signout } from '@/lib/auth-actions'
 
-interface fetchUserType {
-    data: {
-        user: User
-    }
-}
-// const Data = ({ dataPromise ) => {
-//     const { data } = use(dataPromise)
-//     if (data.user) {
-//         console.log('ini profile')
-
-//         return (
-//             <ProfileMenu>
-//                 <ProfileImage media={data.user!.user_metadata.image ?? '/images/profile/user.png'} />
-//                 <Typography variant="body1">{data.user!.email}</Typography>
-//             </ProfileMenu>
-//         )
-//     } else {
-//         return (
-//             <Button variant="contained" component={Link} href="/auth/login" disableElevation color="primary">
-//                 Login
-//             </Button>
-//         )
-//     }
-// }
-
-// const Profile = async () => {
-//     return (
-//         <>
-//             <Suspense fallback={<div>Loading cuy...</div>}>
-//                 <Data dataPromise={await fetchUser()}/>
-//             </Suspense>
-//         </>
-//     )
-// }
-
-// export default Profile
 const ProfileButtonContainer = styled(Box)({
     display: 'flex',
     alignItems: 'center',

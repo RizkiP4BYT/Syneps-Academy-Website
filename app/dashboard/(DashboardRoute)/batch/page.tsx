@@ -34,7 +34,7 @@ export default function BatchPage() {
             const res = await fetch('/api/batch')
             if (!res.ok) throw new Error('Gagal memuat data')
             const data = await res.json()
-            return data.map((batch: any) => ({
+            return data.map((batch: Batches) => ({
                 ...batch,
                 batch_start: batch.batch_start ? new Date(batch.batch_start) : null,
                 batch_end: batch.batch_end ? new Date(batch.batch_end) : null
