@@ -129,8 +129,6 @@ export default function PenilaianPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['Classes'] })
-            const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
-            setSelectedClass(classData!)
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
             setSnackbarMessage('Nilai berhasil disimpan')
@@ -164,10 +162,9 @@ export default function PenilaianPage() {
     }, [selectedClassId])
 
     useEffect(() => {
-        console.log('Classes Data Updated:', classesData)
+        const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
+            setSelectedClass(classData!)
     }, [classesData])
-
-    console.log(selectedParticipant)
 
     if (isLoadingClasses) {
         return (
@@ -286,7 +283,7 @@ export default function PenilaianPage() {
                                     ) : (
                                         <TableCell>Silabus</TableCell>
                                     )}
-                                    <TableCell>{cp.scores?.reduce((acc, score) => acc + score.score, 0) ?? 0}</TableCell>
+                                    <TableCell>{(cp.scores?.reduce((acc, score) => acc + score.score, 0) / cp.scores.length).toFixed(2)}</TableCell>
                                     <TableCell>
                                         <ButtonGroup variant="contained" size={isMobile ? 'small' : 'medium'}>
                                             {!cp.scores ? (
