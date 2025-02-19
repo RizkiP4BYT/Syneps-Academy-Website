@@ -9,6 +9,7 @@ interface Classes {
     class_description: string
     learning_method: string
     created_at: string
+    is_active: boolean
     syllabuses: [
         {
             syllabus_id: string
@@ -45,10 +46,10 @@ export async function POST(request: Request) {
     const supabase = await createClient()
     const body: Classes = await request.json()
 
-    if (!body.program_id || !body.batch_id || !body.class_name || !body.class_description || !body.learning_method || !body.syllabuses) {
+    if (!body.program_id || !body.batch_id || !body.class_name || !body.class_description || !body.learning_method || !body.syllabuses || !body.is_active) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'program_id', 'batch_id', 'class_name', 'class_description', 'learning_method', dan 'syllabuses' untuk melanjutkan.",
+                error: "Diperlukan 'program_id', 'batch_id', 'class_name', 'class_description', 'learning_method', 'syllabuses', dan 'is_active' untuk melanjutkan.",
             },
             { status: 400 }
         )
@@ -69,10 +70,10 @@ export async function PUT(request: Request) {
     const supabase = await createClient()
     const body: Classes = await request.json()
 
-    if (!body.program_id || !body.batch_id || !body.class_name || !body.class_description || !body.learning_method || !body.syllabuses) {
+    if (!body.program_id || !body.batch_id || !body.class_name || !body.class_description || !body.learning_method || !body.syllabuses || !body.is_active) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'program_id', 'batch_id', 'class_name', 'class_description', dan 'learning_method' untuk melanjutkan.",
+                error: "Diperlukan 'program_id', 'batch_id', 'class_name', 'class_description', 'learning_method', 'syllabuses', 'is_active' untuk melanjutkan.",
             },
             { status: 400 }
         )

@@ -23,6 +23,8 @@ import {
     FormControl,
     Skeleton,
     SelectChangeEvent,
+    Switch,
+    FormControlLabel,
 } from '@mui/material'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3'
@@ -31,7 +33,7 @@ import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import CustomSnackbar from '@/app/components/CustomSnackbar'
 import CustomTextField from '@/app/components/CustomTextField'
-import { Delete, Edit, Add, PersonAdd } from '@mui/icons-material'
+import { Delete, Edit, Add, PersonAdd, CircleTwoTone } from '@mui/icons-material'
 
 interface Class {
     class_id: string
@@ -43,6 +45,7 @@ interface Class {
     created_at: string
     participants: { user_id: string; user_name: string }[]
     syllabuses: Syllabuses[]
+    is_active: boolean
 }
 
 interface ClassAPI {
@@ -55,6 +58,7 @@ interface ClassAPI {
     created_at: string
     participants: { user_id: string; user_name: string }[]
     syllabuses: string[]
+    is_active: boolean
 }
 
 interface Program {
@@ -206,6 +210,7 @@ export default function KelasPage() {
     const [silabus, setSilabus] = useState<string[]>([])
     const [startBatch, setStartBatch] = useState<Date | null>(null)
     const [endBatch, setEndBatch] = useState<Date | null>(null)
+    const [classActive, setClassActive] = useState<boolean>(false)
     const [snackbarOpen, setSnackbarOpen] = useState(false)
     const [snackbarMessage, setSnackbarMessage] = useState('')
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info')
@@ -248,6 +253,7 @@ export default function KelasPage() {
             class_description: deskripsiKelas,
             learning_method: metodePembelajaran,
             syllabuses: silabus,
+            is_active: classActive
         })
     }
 
@@ -319,6 +325,7 @@ export default function KelasPage() {
         setDeskripsiKelas('')
         setMetodePembelajaran('')
         setSilabus([])
+        setClassActive(false)
     }
 
     const handleCloseDeleteModal = () => {
@@ -449,7 +456,8 @@ export default function KelasPage() {
                             <TableCell>Batch</TableCell>
                             <TableCell>Nama Kelas</TableCell>
                             <TableCell>Deskripsi Kelas</TableCell>
-                            <TableCell>Metode Pembelajaran</TableCell>
+                            <TableCell>Metode</TableCell>
+                            <TableCell>Status</TableCell>
                             <TableCell>Aksi</TableCell>
                         </TableRow>
                     </TableHead>
@@ -471,12 +479,14 @@ export default function KelasPage() {
                                     <TableCell>{item.class_name}</TableCell>
                                     <TableCell>{item.class_description}</TableCell>
                                     <TableCell>{item.learning_method}</TableCell>
+                                    <TableCell align='center'>{item.is_active ? <CircleTwoTone color='success'/> : <CircleTwoTone color='error'/>}</TableCell>
                                     <TableCell>
                                         <ButtonGroup variant="contained" size={isMobile ? 'small' : 'medium'}>
                                             <Button
                                                 color="info"
                                                 onClick={() => {
                                                     setSelectedKelas(item)
+                                                    setClassActive(item.is_active)
                                                     setModalType('edit')
                                                     setModalOpen(true)
                                                 }}
@@ -561,6 +571,9 @@ export default function KelasPage() {
                                     </MenuItem>
                                 ))}
                         </Select>
+                    </FormControl>
+                    <FormControl fullWidth sx={{ mb: 3 }}>
+                        <FormControlLabel control={<Switch checked={classActive} onChange={(e) => setClassActive(e.target.checked)}/>} label="Aktifkan kelas?"/>
                     </FormControl>
                     <Button type="submit" variant="contained" color="primary">
                         Simpan
