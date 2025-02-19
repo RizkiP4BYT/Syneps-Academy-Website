@@ -1,52 +1,108 @@
 'use client'
 
+import { Box, Card, CardActionArea, Grid2, Stack, Typography } from '@mui/material'
+import { useQuery } from '@tanstack/react-query'
+import Image from 'next/image'
 import React, { useState } from 'react'
-import { Stepper, Step, StepLabel, Button, Typography, Slide, Box } from '@mui/material'
 
-const steps = ['Step 1', 'Step 2', 'Step 3']
+interface Class {
+    class_id: number
+    program_id: number
+    batch_id: number
+    class_name: string
+    class_description: string
+    learning_method: string
+    created_at: string
+    is_active: boolean
+}
 
-const AnimatedStepper: React.FC = () => {
-    const [activeStep, setActiveStep] = useState(0)
-    const [direction, setDirection] = useState<'left' | 'right'>('left')
+interface Program {
+    program_id: number
+    program_name: string
+}
+interface Batch {
+    batch_id: number
+    batch_number: number
+    batch_start: string
+    batch_end: string
+}
 
-    const handleNext = () => {
-        setDirection('left')
-        setActiveStep((prevActiveStep) => Math.min(prevActiveStep + 1, steps.length - 1))
-    }
+interface ActiveClass {
+    Classes: Class[]
+    Programs: Program[]
+    Batches: Batch[]
+}
 
-    const handleBack = () => {
-        setDirection('right')
-        setActiveStep((prevActiveStep) => Math.max(prevActiveStep - 1, 0))
-    }
+const RegistrationPage = () => {
 
+    const { data: activeClass = { Classes: [], Programs: [], Batches: []}, isLoading, isError } = useQuery<ActiveClass>({
+        queryKey: ['ActiveClass'],
+        queryFn: async () => {
+            const res = await fetch('/api/referral')
+            if (!res.ok) throw new Error('Gagal memuat data')
+            return res.json()
+        },
+    })
+    const [selectedProgram, setSelectedProgram] = useState<string>("")
     return (
-        <Box sx={{ width: '100%' }}>
-            <Stepper activeStep={activeStep}>
-                {steps.map((label) => (
-                    <Step key={label}>
-                        <StepLabel>{label}</StepLabel>
-                    </Step>
-                ))}
-            </Stepper>
-            <Box sx={{ position: 'relative', height: '100px', overflow: 'hidden' }}>
-                <Slide direction={direction} in={true} mountOnEnter unmountOnExit timeout={500}>
-                    <Box sx={{ position: 'absolute', width: '100%' }}>
-                        <Typography variant="h6" align="center">
-                            {`Content for ${steps[activeStep]}`}
-                        </Typography>
-                    </Box>
-                </Slide>
-            </Box>
-            <Box sx={{ mt: 2 }}>
-                <Button disabled={activeStep === 0} onClick={handleBack}>
-                    Back
-                </Button>
-                <Button variant="contained" color="primary" onClick={handleNext}>
-                    {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-                </Button>
-            </Box>
+        <Box
+          sx={{
+              position: "relative",
+              "&:before": {
+                  content: '""',
+                  background: "radial-gradient(#d2f1df, #d3d7fa, #bad8f4)",
+                  backgroundSize: "400% 400%",
+                  animation: "gradient 1s ease infinite",
+                  position: "absolute",
+                  zIndex: "-1",
+                  height: "100%",
+                  width: "100%",
+                  opacity: "0.9",
+              },
+          }}
+        >
+          <Grid2 container justifyContent={"center"} sx={{ height: "100vh" }}>
+            <Grid2
+              size={{ xs: 10, sm: 10, lg: 4, xl: 4 }}
+              display="flex"
+              alignItems="center"
+              flexDirection="column"
+            >
+              <Image
+                src="/assets/images/syn-logo-dark.svg"
+                alt="Syneps Academy Logo"
+                width={150}
+                height={150}
+              />
+              <Typography
+                variant="h3"
+                textAlign="center"
+                color="textPrimary"
+              >
+                Formulir Pendaftaran Syneps Academy
+              </Typography>
+              <Typography variant='subtitle1' textAlign="center" color='textPrimary' mb={4}>Selamat datang di formulir pendaftaran Syneps Academy! Silahkan untuk mengisi data</Typography>
+              <Card
+                elevation={9}
+                sx={{ p: 4, zIndex: 1, width: "100%", maxWidth: "500px" }}
+              >
+                <Box display="flex" alignItems="center" justifyContent="center">
+                    <form action="">
+                        <Stack>
+                            <Box>
+                                <Typography variant='h5' fontWeight={600} component="label" htmlFor='program'>Program yang ingin diikuti</Typography>
+                                <Card>
+                                    <CardActionArea onClick={() => setSelectedProgram()}></CardActionArea>
+                                </Card>
+                            </Box>
+                        </Stack>
+                    </form>
+                </Box>
+              </Card>
+            </Grid2>
+          </Grid2>
         </Box>
     )
 }
 
-export default AnimatedStepper
+export default RegistrationPage
