@@ -14,22 +14,15 @@ export default function Home() {
         <div className={styles.page}>
             <main className={styles.main}>
                 <div className={styles.imageWrapper}>
-                    <Image
-                        objectFit="cover"
-                        width="250"
-                        height="250"
-                        src="/assets/images/syn-logo-dark.svg"
-                        alt="Syneps Academy logo"
-                        priority
-                    />
+                    <Image objectFit="cover" width="250" height="250" src="/assets/images/syn-logo-dark.svg" alt="Syneps Academy logo" priority />
                 </div>
                 <Link href={'/dashboard'}>
                     <Button fullWidth variant="contained">
                         Go To Dashboard!
                     </Button>
                 </Link>
-                <Link href={'/registration'}>
-                    <Button fullWidth color='warning' variant="contained">
+                <Link href={'/registrationv2'}>
+                    <Button fullWidth color="warning" variant="contained">
                         Registration (Incomplete)
                     </Button>
                 </Link>
