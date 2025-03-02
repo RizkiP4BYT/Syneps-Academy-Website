@@ -1,9 +1,9 @@
 'use client'
 
+import React, { useState } from 'react'
 import { Box, Card, CardActionArea, CardContent, Grid2, Stack, Typography, useMediaQuery, useTheme, MenuItem, Autocomplete, Button } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import Image from 'next/image'
-import React, { useState } from 'react'
 import CustomTextField from '../components/CustomTextField'
 import { DatePicker } from '@mui/x-date-pickers'
 import { format } from 'date-fns'
@@ -58,10 +58,21 @@ const RegistrationPage = () => {
     })
 
     const [selectedProgram, setSelectedProgram] = useState<string>('')
+    const [selectedClass, setSelectedClass] = useState<string>('')
     const [birthDate, setBirthDate] = useState<Date | null>(null)
     const [paymentMethod, setPaymentMethod] = useState<string>('')
-
-    // Get Data City By Province
+    const [fullName, setFullName] = useState<string>('')
+    const [email, setEmail] = useState<string>('')
+    const [gender, setGender] = useState<string>('')
+    const [placeOfBirth, setPlaceOfBirth] = useState<string>('')
+    const [education, setEducation] = useState<string>('')
+    const [phone, setPhone] = useState<string>('')
+    const [relativePhone, setRelativePhone] = useState<string>('')
+    const [city, setCity] = useState<string>('')
+    const [address, setAddress] = useState<string>('')
+    const [knownProgram, setKnownProgram] = useState<string>('')
+    const [motivation, setMotivation] = useState<string>('')
+    console.log(selectedClass)
     const options = dataProvince.flatMap((provinsi) =>
         provinsi.kota.map((kota) => ({
             label: kota,
@@ -69,34 +80,44 @@ const RegistrationPage = () => {
         }))
     )
 
-    // Form State
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        gender: '',
-        place_of_birth: '',
-        phone: '',
-        phone_relative: '',
-        address: '',
-        knownprogram: '',
-        motivation: '',
-        city: '',
-        education: ''
-    })
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        setFormData((prev) => ({ ...prev, [name]: value }))
-    }
-
-    const handleCityChange = (e: React.SyntheticEvent<Element, Event>, value: { label: string; group: string } | null) => {
-        setFormData((prev) => ({ ...prev, city: value!.label }))
-    }
-
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log('Form Data:', formData)
-        // Handle form submission logic here
+
+        const formData = {
+            selectedClass,
+            birthDate,
+            paymentMethod,
+            fullName,
+            email,
+            gender,
+            placeOfBirth,
+            education,
+            phone,
+            relativePhone,
+            city,
+            address,
+            knownProgram,
+            motivation
+        }
+
+        try {
+            const response = await fetch('/api/submit_registration', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+
+            if (!response.ok) {
+                throw new Error('Gagal mengirim formulir')
+            }
+
+            const result = await response.json()
+            console.log('Formulir berhasil dikirim:', result)
+        } catch (error) {
+            console.error('Terjadi kesalahan:', error)
+        }
     }
 
     if (isLoading) {
@@ -122,7 +143,7 @@ const RegistrationPage = () => {
                 }
             }}
         >
-            <Grid2 container justifyContent="center" sx={{ height: 'auto' }}>
+            <Grid2 container justifyContent="center" sx={{ height: '500vh' }}>
                 <Grid2 size={{ xs: 10, sm: 10, lg: 8, xl: 8 }} display="flex" alignItems="center" flexDirection="column">
                     <Image src="/assets/images/syn-logo-dark.svg" alt="Syneps Academy Logo" width={150} height={150} />
                     <Typography variant="h3" textAlign="center" color="textPrimary">
@@ -161,7 +182,7 @@ const RegistrationPage = () => {
                                             </Grid2>
                                         ))}
                                     </Grid2>
-                                    <CustomTextField label="Pilih Kelas" variant="filled" fullWidth name="program" id="program" select required>
+                                    <CustomTextField label="Pilih Kelas" variant="filled" fullWidth name="program" id="program" select required onChange={(e) => setSelectedClass(e.target.value)}>
                                         {selectedProgram ? (
                                             activeClass.Classes.filter((c) => c.program_id === selectedProgram).length > 0 ? (
                                                 activeClass.Classes.filter((c) => c.program_id === selectedProgram).map((kelas) => (
@@ -185,9 +206,38 @@ const RegistrationPage = () => {
                                         <Typography variant="h3" fontWeight={600} component="label" htmlFor="program">
                                             Informasi Data Diri
                                         </Typography>
-                                        <CustomTextField label="Nama Lengkap Sesuai KTP" variant="outlined" fullWidth name="name" id="name" required onChange={handleChange} />
-                                        <CustomTextField label="Email" variant="outlined" fullWidth name="email" id="email" type="email" required onChange={handleChange} />
-                                        <CustomTextField label="Jenis Kelamin" variant="outlined" fullWidth name="gender" id="gender" select required onChange={handleChange}>
+                                        <CustomTextField
+                                            label="Nama Lengkap Sesuai KTP"
+                                            variant="outlined"
+                                            fullWidth
+                                            name="name"
+                                            id="name"
+                                            required
+                                            value={fullName}
+                                            onChange={(e) => setFullName(e.target.value)}
+                                        />
+                                        <CustomTextField
+                                            label="Email"
+                                            variant="outlined"
+                                            fullWidth
+                                            name="email"
+                                            id="email"
+                                            type="email"
+                                            required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                        />
+                                        <CustomTextField
+                                            label="Jenis Kelamin"
+                                            variant="outlined"
+                                            fullWidth
+                                            name="gender"
+                                            id="gender"
+                                            select
+                                            required
+                                            value={gender}
+                                            onChange={(e) => setGender(e.target.value)}
+                                        >
                                             <MenuItem value="" disabled>
                                                 Pilih Jenis Kelamin
                                             </MenuItem>
@@ -195,7 +245,16 @@ const RegistrationPage = () => {
                                             <MenuItem value="Perempuan">Perempuan</MenuItem>
                                         </CustomTextField>
                                         <Grid2 size={{ xs: 5, sm: 6 }}>
-                                            <CustomTextField label="Tempat Lahir" variant="outlined" fullWidth name="place_of_birth" id="place_of_birth" required onChange={handleChange} />
+                                            <CustomTextField
+                                                label="Tempat Lahir"
+                                                variant="outlined"
+                                                fullWidth
+                                                name="place_of_birth"
+                                                id="place_of_birth"
+                                                required
+                                                value={placeOfBirth}
+                                                onChange={(e) => setPlaceOfBirth(e.target.value)}
+                                            />
                                         </Grid2>
                                         <Grid2 size={{ xs: 7, sm: 6 }}>
                                             <DatePicker
@@ -211,7 +270,17 @@ const RegistrationPage = () => {
                                                 }}
                                             />
                                         </Grid2>
-                                        <CustomTextField label="Pendidikan Terakhir" variant="outlined" fullWidth name="pendidikan" id="pendidikan" select required onChange={handleChange}>
+                                        <CustomTextField
+                                            label="Pendidikan Terakhir"
+                                            variant="outlined"
+                                            fullWidth
+                                            name="pendidikan"
+                                            id="pendidikan"
+                                            select
+                                            required
+                                            value={education}
+                                            onChange={(e) => setEducation(e.target.value)}
+                                        >
                                             <MenuItem value="" disabled>
                                                 Pendidkan Terakhir
                                             </MenuItem>
@@ -232,9 +301,10 @@ const RegistrationPage = () => {
                                                 id="phone"
                                                 type="tel"
                                                 required
-                                                onChange={handleChange}
                                                 placeholder="Contoh: 081234567890"
-                                                inputProps={{ maxLength: 15 }}
+                                                inputProps={{ maxLength: 13 }}
+                                                value={phone}
+                                                onChange={(e) => setPhone(e.target.value)}
                                             />
                                         </Grid2>
                                         <Grid2 size={{ xs: 6, sm: 6 }}>
@@ -246,9 +316,10 @@ const RegistrationPage = () => {
                                                 id="phone"
                                                 type="tel"
                                                 required
-                                                onChange={handleChange}
                                                 placeholder="Contoh: 081234567890"
-                                                inputProps={{ maxLength: 15 }}
+                                                inputProps={{ maxLength: 13 }}
+                                                value={relativePhone}
+                                                onChange={(e) => setRelativePhone(e.target.value)}
                                             />
                                         </Grid2>
                                         <Autocomplete
@@ -256,8 +327,8 @@ const RegistrationPage = () => {
                                             groupBy={(option) => option.group}
                                             getOptionLabel={(option) => option.label}
                                             renderInput={(params) => <CustomTextField {...params} label="Kota Domisili" variant="outlined" />}
-                                            onChange={handleCityChange}
                                             fullWidth
+                                            onChange={(event, value) => setCity(value?.label || '')}
                                         />
                                         <CustomTextField
                                             label="Alamat Lengkap"
@@ -269,6 +340,8 @@ const RegistrationPage = () => {
                                             multiline
                                             rows={4}
                                             placeholder="Masukkan alamat lengkap"
+                                            value={address}
+                                            onChange={(e) => setAddress(e.target.value)}
                                         />
                                         <CustomTextField
                                             label="Darimana Mengetahui Program Ini"
@@ -278,8 +351,9 @@ const RegistrationPage = () => {
                                             id="knownprogram"
                                             select
                                             required
-                                            onChange={handleChange}
                                             sx={{ mb: 2 }}
+                                            value={knownProgram}
+                                            onChange={(e) => setKnownProgram(e.target.value)}
                                         >
                                             <MenuItem value="" disabled>
                                                 Darimana Mengetahui Program Ini
@@ -304,8 +378,9 @@ const RegistrationPage = () => {
                                             id="motivation"
                                             select
                                             required
-                                            onChange={handleChange}
                                             sx={{ mb: 2 }}
+                                            value={motivation}
+                                            onChange={(e) => setMotivation(e.target.value)}
                                         >
                                             <MenuItem value="" disabled>
                                                 Motivasi Mengikuti Program Ini
@@ -321,10 +396,10 @@ const RegistrationPage = () => {
                                             <MenuItem value="keingintahuan">Keingintahuan</MenuItem>
                                             <MenuItem value="lainnya">Lainnya</MenuItem>
                                         </CustomTextField>
+                                        <Typography variant="h3" fontWeight={600} component="label" htmlFor="program">
+                                            Metode Pembayaran
+                                        </Typography>
                                     </Grid2>
-                                    <Typography variant="h3" fontWeight={600} component="label" htmlFor="program">
-                                        Metode Pembayaran
-                                    </Typography>
                                     <Grid2 container spacing={2} justifyContent="center">
                                         <Grid2 sx={{ xs: 12, sm: 6, md: 4 }}>
                                             <Card sx={{ mb: 2 }}>
@@ -358,7 +433,7 @@ const RegistrationPage = () => {
                                                     }}
                                                 >
                                                     <CardContent>
-                                                        <Typography variant="h6">Cicilan</Typography>
+                                                        <Typography variant="h6">Cicilan 0%</Typography>
                                                         <Typography variant="body1">Cicilan tanpa bunga</Typography>
                                                     </CardContent>
                                                 </CardActionArea>
