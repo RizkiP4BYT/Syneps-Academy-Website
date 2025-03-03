@@ -22,8 +22,8 @@ export default function Home() {
                     </Button>
                 </Link>
                 <Link href={'/registrationv2'}>
-                    <Button fullWidth color="warning" variant="contained">
-                        Registration (Incomplete)
+                    <Button fullWidth color="success" variant="contained">
+                        Registration Page
                     </Button>
                 </Link>
                 <ol>
