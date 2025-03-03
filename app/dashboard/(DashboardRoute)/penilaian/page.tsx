@@ -152,7 +152,7 @@ export default function PenilaianPage() {
         setParticipantName(null)
         setSelectedParticipant([])
     }
-
+console.log(classesData)
     useEffect(() => {
         if (selectedClassId) {
             const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
@@ -282,7 +282,7 @@ export default function PenilaianPage() {
                                     ) : (
                                         <TableCell>Silabus</TableCell>
                                     )}
-                                    <TableCell>{(cp.scores?.reduce((acc, score) => acc + score.score, 0) / cp.scores.length).toFixed(2)}</TableCell>
+                                    <TableCell>{cp.scores ? (cp.scores?.reduce((acc, score) => acc + score.score, 0) / cp.scores.length).toFixed(2) : "0"}</TableCell>
                                     <TableCell>
                                         <ButtonGroup variant="contained" size={isMobile ? 'small' : 'medium'}>
                                             {!cp.scores ? (
