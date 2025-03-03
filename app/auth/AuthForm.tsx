@@ -132,7 +132,7 @@ const AuthForm: React.FC<AuthFormProp> = ({ formOption }) => {
             </FormGroup>
             <Typography
               component={Link}
-              href="/auth/forgot-password"
+              href="#"
               fontWeight="500"
               sx={{
                 textDecoration: "none",
