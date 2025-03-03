@@ -1,16 +1,27 @@
 import React from 'react'
 import { Snackbar, Alert, Slide } from '@mui/material'
+import { useRouter } from 'next/navigation'
 
 interface CustomSnackbarProps {
     open: boolean
     onClose: () => void
     message: string
     severity: 'success' | 'error' | 'info' | 'warning'
+    redirectPage?: string | null
 }
 
-const CustomSnackbar: React.FC<CustomSnackbarProps> = ({ open, onClose, message, severity }) => {
+const CustomSnackbar: React.FC<CustomSnackbarProps> = ({ open, onClose, message, severity, redirectPage }) => {
+    const router = useRouter()
+
+    const handleClose = () => {
+        onClose()
+        if (redirectPage) {
+            router.push(redirectPage)
+        }
+    }
+
     return (
-        <Snackbar open={open} onClose={onClose} autoHideDuration={5000} TransitionComponent={Slide} anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}>
+        <Snackbar open={open} onClose={handleClose} autoHideDuration={3000} TransitionComponent={Slide} anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}>
             <Alert
                 severity={severity}
                 sx={{
