@@ -11,7 +11,7 @@ export async function GET() {
         return NextResponse.json(data)
     } catch (error) {
         console.error(error)
-        return NextResponse.json({ error: 'Gagal mengambil data silabus.' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal mengambil data referral.' }, { status: 500 })
     }
 }
 
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     if (!body.referrer || !body.referral_code || !body.discount_percentage) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'referrer', 'referral_code', dan 'discount_percentage' untuk melanjutkan.",
+                error: "Diperlukan 'referrer', 'referral_code', dan 'discount_percentage' untuk melanjutkan."
             },
             { status: 400 }
         )
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         return NextResponse.json(data[0])
     } catch (error) {
         console.error(error)
-        return NextResponse.json({ error: 'Gagal membuat silabus.' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal membuat referral.' }, { status: 500 })
     }
 }
 
@@ -46,7 +46,7 @@ export async function PUT(request: Request) {
     if (!body.referral_id || !body.referrer || !body.referral_code || !body.discount_percentage) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'referral_id', 'referrer', 'referral_code', dan 'discount_percentage' untuk melanjutkan.",
+                error: "Diperlukan 'referral_id', 'referrer', 'referral_code', dan 'discount_percentage' untuk melanjutkan."
             },
             { status: 400 }
         )
@@ -59,7 +59,7 @@ export async function PUT(request: Request) {
         return NextResponse.json(data[0])
     } catch (error) {
         console.error(error)
-        return NextResponse.json({ error: 'Gagal memperbarui silabus.' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal memperbarui referral.' }, { status: 500 })
     }
 }
 
@@ -77,6 +77,6 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ success: true })
     } catch (error) {
         console.error(error)
-        return NextResponse.json({ error: 'Gagal menghapus silabus' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal menghapus referral' }, { status: 500 })
     }
 }
