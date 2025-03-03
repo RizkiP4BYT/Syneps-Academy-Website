@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Box, Card, CardActionArea, CardContent, Grid2, Stack, Typography, useMediaQuery, useTheme, MenuItem, Autocomplete, Button } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Grid2, Stack, Typography, useMediaQuery, useTheme, MenuItem, Autocomplete, Button, Skeleton } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import Image from 'next/image'
 import CustomTextField from '../components/CustomTextField'
@@ -9,6 +9,7 @@ import { DatePicker } from '@mui/x-date-pickers'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import dataProvince from '@/lib/types/cityByProvince'
+import CustomSnackbar from '../components/CustomSnackbar'
 
 interface Class {
     class_id: string
@@ -57,6 +58,13 @@ const RegistrationPage = () => {
         }
     })
 
+    const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false)
+    const [snackbarMessage, setSnackbarMessage] = useState<string>('')
+    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info')
+    const [redirectPage, setRedirectPage] = useState<string | null>(null)
+
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+
     const [selectedProgram, setSelectedProgram] = useState<string>('')
     const [selectedClass, setSelectedClass] = useState<string>('')
     const [birthDate, setBirthDate] = useState<Date | null>(null)
@@ -70,9 +78,9 @@ const RegistrationPage = () => {
     const [relativePhone, setRelativePhone] = useState<string>('')
     const [city, setCity] = useState<string>('')
     const [address, setAddress] = useState<string>('')
-    const [knownProgram, setKnownProgram] = useState<string>('')
+    const [knownClass, setKnownClass] = useState<string>('')
     const [motivation, setMotivation] = useState<string>('')
-    console.log(selectedClass)
+    const [referralCode, setReferralCode] = useState<string>('')
     const options = dataProvince.flatMap((provinsi) =>
         provinsi.kota.map((kota) => ({
             label: kota,
@@ -82,9 +90,31 @@ const RegistrationPage = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        setIsSubmitting(true)
+
+        if (referralCode) {
+            try {
+                const referralResponse = await fetch(`/api/validateReferral?referral_code=${referralCode}`)
+                if (!referralResponse.ok) {
+                    const referralData = await referralResponse.json()
+                    setSnackbarOpen(true)
+                    setSnackbarSeverity('error')
+                    setSnackbarMessage(referralData.error || 'Kode referral tidak valid')
+                    setIsSubmitting(false)
+                    return
+                }
+            } catch (error) {
+                console.error('Terjadi kesalahan saat memvalidasi referral:', error)
+                setSnackbarOpen(true)
+                setSnackbarSeverity('error')
+                setSnackbarMessage('Terjadi kesalahan saat memvalidasi referral')
+                setIsSubmitting(false)
+                return
+            }
+        }
 
         const formData = {
-            selectedClass,
+            class_id: selectedClass,
             birthDate,
             paymentMethod,
             fullName,
@@ -96,8 +126,9 @@ const RegistrationPage = () => {
             relativePhone,
             city,
             address,
-            knownProgram,
-            motivation
+            knownClass,
+            motivation,
+            referralCode
         }
 
         try {
@@ -110,18 +141,89 @@ const RegistrationPage = () => {
             })
 
             if (!response.ok) {
-                throw new Error('Gagal mengirim formulir')
+                setSnackbarOpen(true)
+                setSnackbarSeverity('error')
+                setSnackbarMessage('Gagal mengirim formulir')
             }
 
-            const result = await response.json()
-            console.log('Formulir berhasil dikirim:', result)
+            setSnackbarOpen(true)
+            setSnackbarSeverity('success')
+            setSnackbarMessage('Pengiriman formulir berhasil!')
+            setRedirectPage('/registrationv2/success')
         } catch (error) {
             console.error('Terjadi kesalahan:', error)
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
     if (isLoading) {
-        return <Box p={isMobile ? 2 : 4}>{/* Skeleton loading state */}</Box>
+        return (
+            <Box p={isMobile ? 2 : 4}>
+                <Grid2 container spacing={3}>
+                    <Grid2 size={{ xs: 12 }}>
+                        <Typography variant="h5" component="div">
+                            <Skeleton width="60%" />
+                        </Typography>
+                        <Grid2 container spacing={2}>
+                            {[1, 2, 3].map((_, index) => (
+                                <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+                                    <Card>
+                                        <CardContent>
+                                            <Typography variant="h6">
+                                                <Skeleton />
+                                            </Typography>
+                                            <Typography variant="body1">
+                                                <Skeleton />
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid2>
+                            ))}
+                        </Grid2>
+                    </Grid2>
+
+                    <Grid2 size={{ xs: 12 }}>
+                        <Typography variant="h3" fontWeight={600} component="div">
+                            <Skeleton width="50%" />
+                        </Typography>
+                        <Grid2 container spacing={2}>
+                            {[1, 2, 3, 4, 5, 6].map((_, index) => (
+                                <Grid2 size={{ xs: 12, sm: 6 }} key={index}>
+                                    <Skeleton variant="rectangular" height={56} />
+                                </Grid2>
+                            ))}
+                        </Grid2>
+                    </Grid2>
+
+                    <Grid2 size={{ xs: 12 }}>
+                        <Typography variant="h3" fontWeight={600} component="div">
+                            <Skeleton width="50%" />
+                        </Typography>
+                        <Grid2 container spacing={2}>
+                            {[1, 2].map((_, index) => (
+                                <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+                                    <Card>
+                                        <CardContent>
+                                            <Typography variant="h6">
+                                                <Skeleton />
+                                            </Typography>
+                                            <Typography variant="body1">
+                                                <Skeleton />
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid2>
+                            ))}
+                        </Grid2>
+                    </Grid2>
+
+                    <Grid2 size={{ xs: 12 }}>
+                        <Skeleton variant="rectangular" height={48} />
+                    </Grid2>
+                </Grid2>
+            </Box>
+        )
     }
 
     if (isError) return <div>Terjadi kesalahan saat memuat data</div>
@@ -143,7 +245,7 @@ const RegistrationPage = () => {
                 }
             }}
         >
-            <Grid2 container justifyContent="center" sx={{ height: '500vh' }}>
+            <Grid2 container justifyContent="center" sx={{ height: 'auto' }}>
                 <Grid2 size={{ xs: 10, sm: 10, lg: 8, xl: 8 }} display="flex" alignItems="center" flexDirection="column">
                     <Image src="/assets/images/syn-logo-dark.svg" alt="Syneps Academy Logo" width={150} height={150} />
                     <Typography variant="h3" textAlign="center" color="textPrimary">
@@ -182,7 +284,17 @@ const RegistrationPage = () => {
                                             </Grid2>
                                         ))}
                                     </Grid2>
-                                    <CustomTextField label="Pilih Kelas" variant="filled" fullWidth name="program" id="program" select required onChange={(e) => setSelectedClass(e.target.value)}>
+                                    <CustomTextField
+                                        label="Pilih Kelas"
+                                        variant="filled"
+                                        fullWidth
+                                        name="program"
+                                        id="program"
+                                        select
+                                        required
+                                        value={selectedClass}
+                                        onChange={(e) => setSelectedClass(e.target.value)}
+                                    >
                                         {selectedProgram ? (
                                             activeClass.Classes.filter((c) => c.program_id === selectedProgram).length > 0 ? (
                                                 activeClass.Classes.filter((c) => c.program_id === selectedProgram).map((kelas) => (
@@ -241,7 +353,7 @@ const RegistrationPage = () => {
                                             <MenuItem value="" disabled>
                                                 Pilih Jenis Kelamin
                                             </MenuItem>
-                                            <MenuItem value="Laki-laki">Laki-laki</MenuItem>
+                                            <MenuItem value="Laki-Laki">Laki-Laki</MenuItem>
                                             <MenuItem value="Perempuan">Perempuan</MenuItem>
                                         </CustomTextField>
                                         <Grid2 size={{ xs: 5, sm: 6 }}>
@@ -344,16 +456,16 @@ const RegistrationPage = () => {
                                             onChange={(e) => setAddress(e.target.value)}
                                         />
                                         <CustomTextField
-                                            label="Darimana Mengetahui Program Ini"
+                                            label="Darimana Mengetahui Kelas Ini"
                                             variant="outlined"
                                             fullWidth
-                                            name="knownprogram"
-                                            id="knownprogram"
+                                            name="knownClass"
+                                            id="knownClass"
                                             select
                                             required
                                             sx={{ mb: 2 }}
-                                            value={knownProgram}
-                                            onChange={(e) => setKnownProgram(e.target.value)}
+                                            value={knownClass}
+                                            onChange={(e) => setKnownClass(e.target.value)}
                                         >
                                             <MenuItem value="" disabled>
                                                 Darimana Mengetahui Program Ini
@@ -440,8 +552,17 @@ const RegistrationPage = () => {
                                             </Card>
                                         </Grid2>
                                     </Grid2>
-                                    <Button color="primary" variant="contained" size="large" fullWidth type="submit">
-                                        Kirim Formulir
+                                    <CustomTextField
+                                        label="Kode Referral (Jika Ada)"
+                                        variant="outlined"
+                                        fullWidth
+                                        name="referral"
+                                        id="referral"
+                                        value={referralCode}
+                                        onChange={(e) => setReferralCode(e.target.value)}
+                                    />
+                                    <Button color="primary" variant="contained" size="large" fullWidth type="submit" disabled={isSubmitting}>
+                                        {isSubmitting ? 'Mengirim Formulir...' : 'Kirim Formulir'}
                                     </Button>
                                 </Stack>
                             </form>
@@ -449,6 +570,7 @@ const RegistrationPage = () => {
                     </Card>
                 </Grid2>
             </Grid2>
+            <CustomSnackbar open={snackbarOpen} onClose={() => setSnackbarOpen(false)} message={snackbarMessage} severity={snackbarSeverity} redirectPage={redirectPage} />
         </Box>
     )
 }
