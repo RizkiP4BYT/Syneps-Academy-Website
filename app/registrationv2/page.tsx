@@ -30,7 +30,7 @@ interface Program {
 
 interface Batch {
     batch_id: string
-    batch_number: number
+    batch_name: string
     batch_start: Date
     batch_end: Date
 }
@@ -299,7 +299,7 @@ const RegistrationPage = () => {
                                             activeClass.Classes.filter((c) => c.program_id === selectedProgram).length > 0 ? (
                                                 activeClass.Classes.filter((c) => c.program_id === selectedProgram).map((kelas) => (
                                                     <MenuItem key={kelas.class_id} value={kelas.class_id} sx={{ whiteSpace: 'normal' }}>
-                                                        {kelas.class_name} - Batch {activeClass.Batches.find((b) => b.batch_id === kelas.batch_id)?.batch_number} (
+                                                        {kelas.class_name} - {activeClass.Batches.find((b) => b.batch_id === kelas.batch_id)?.batch_name} (
                                                         {format(activeClass.Batches.find((b) => b.batch_id === kelas.batch_id)!.batch_start, 'dd MMMM yyyy', { locale: id })})
                                                     </MenuItem>
                                                 ))

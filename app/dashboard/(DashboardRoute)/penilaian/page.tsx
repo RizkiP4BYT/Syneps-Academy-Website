@@ -55,7 +55,7 @@ interface Program {
 
 interface Batch {
     batch_id: string
-    batch_number: number
+    batch_name: string
     batch_start: string
     batch_end: string
 }
@@ -152,17 +152,18 @@ export default function PenilaianPage() {
         setParticipantName(null)
         setSelectedParticipant([])
     }
-console.log(classesData)
     useEffect(() => {
-        if (selectedClassId) {
+        if (classesData.Classes && selectedClassId) {
             const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
             setSelectedClass(classData!)
         }
     }, [classesData.Classes, selectedClassId])
 
     useEffect(() => {
+        if (classesData.Classes) {
         const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
             setSelectedClass(classData!)
+        }
     }, [classesData, selectedClassId])
 
     if (isLoadingClasses) {
@@ -230,14 +231,20 @@ console.log(classesData)
                 <Grid2>
                     <FormControl fullWidth sx={{ width: '20rem' }}>
                         <InputLabel id="select-class-label">Pilih Kelas</InputLabel>
+                        {!classesData.Classes ? (
+                        <Select labelId="select-class-label" value={selectedClassId || ''} onChange={(e) => setSelectedClassId(e.target.value)} fullWidth>
+<MenuItem value="null" disabled>Kelas Tidak Tersedia</MenuItem>
+                        </Select>
+                        ) : (
                         <Select labelId="select-class-label" value={selectedClassId || ''} onChange={(e) => setSelectedClassId(e.target.value)} fullWidth>
                             {classesData.Classes.map((item) => (
                                 <MenuItem key={item.class_id} value={item.class_id}>
-                                    Batch {classesData.Batches.find((batch) => batch.batch_id === item.batch_id)?.batch_number}{' '}
+                                    {classesData.Batches.find((batch) => batch.batch_id === item.batch_id)?.batch_name}{' '}
                                     {classesData.Programs.find((program) => program.program_id === item.program_id)?.program_name} {item.class_name}
                                 </MenuItem>
                             ))}
                         </Select>
+                        )}
                     </FormControl>
                 </Grid2>
             </Grid2>

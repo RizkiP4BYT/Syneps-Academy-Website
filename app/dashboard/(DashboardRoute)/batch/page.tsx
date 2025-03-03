@@ -14,7 +14,7 @@ import { id } from 'date-fns/locale'
 
 interface Batches {
     batch_id: string
-    batch_number: number
+    batch_name: string
     batch_start: Date | null
     batch_end: Date | null
 }
@@ -107,6 +107,7 @@ export default function BatchPage() {
     const [modalOpen, setModalOpen] = useState(false)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
     const [selectedBatch, setSelectedBatch] = useState<Batches | null>(null)
+    const [batchName, setBatchName] = useState<string>('')
     const [batchStart, setBatchStart] = useState<Date | null>(null)
     const [batchEnd, setBatchEnd] = useState<Date | null>(null)
     const [snackbarOpen, setSnackbarOpen] = useState(false)
@@ -117,6 +118,7 @@ export default function BatchPage() {
         e.preventDefault()
         mutation.mutate({
             batch_id: selectedBatch?.batch_id,
+            batch_name: batchName,
             batch_start: batchStart,
             batch_end: batchEnd
         })
@@ -142,7 +144,6 @@ export default function BatchPage() {
         if (selectedBatch) {
             setBatchStart(selectedBatch.batch_start)
             setBatchEnd(selectedBatch.batch_end)
-            console.log(selectedBatch)
         } else {
             setBatchStart(null)
             setBatchEnd(null)
@@ -250,7 +251,7 @@ export default function BatchPage() {
                             Batches.map((batch, index) => (
                                 <TableRow key={batch.batch_id}>
                                     <TableCell>{index + 1}</TableCell>
-                                    <TableCell>Batch {batch.batch_number}</TableCell>
+                                    <TableCell>{batch.batch_name}</TableCell>
                                     <TableCell>{format(batch.batch_start!, 'dd MMMM yyyy - HH:mm', { locale: id })}</TableCell>
                                     <TableCell>{format(batch.batch_end!, 'dd MMMM yyyy - HH:mm', { locale: id })}</TableCell>
                                     <TableCell>
@@ -288,12 +289,16 @@ export default function BatchPage() {
                     <Typography variant="h5" mb={3}>
                         {modalType === 'edit' ? 'Edit Batch' : 'Buat Batch Baru'}
                     </Typography>
+                    <CustomTextField label="Nama Batch" value={batchName} onChange={(e) => setBatchName(e.target.value)} fullWidth required sx={{ mb: 3 }} />
                     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={id}>
                         <DateTimePicker
                             label="Start Batch"
                             value={batchStart}
                             onChange={(newValue) => setBatchStart(newValue)}
                             format="dd MMMM yyyy HH:mm"
+                            sx={{
+                                mb: 3
+                            }}
                             slots={{
                                 textField: CustomTextField
                             }}
@@ -306,6 +311,9 @@ export default function BatchPage() {
                             value={batchEnd}
                             onChange={(newValue) => setBatchEnd(newValue)}
                             format="dd MMMM yyyy HH:mm"
+                            sx={{
+                                mb: 3
+                            }}
                             slots={{
                                 textField: CustomTextField
                             }}
