@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 interface Batches {
     batch_id: string
-    batch_number: number
+    batch_name: string
     batch_start: Date | null
     batch_end: Date | null
 }
@@ -12,7 +12,7 @@ export async function GET() {
     const supabase = await createClient()
 
     try {
-        const { data, error } = await supabase.from('Batches').select('*').order('batch_number', { ascending: true })
+        const { data, error } = await supabase.from('Batches').select('*').order('batch_name', { ascending: true })
 
         if (error) throw error
         return NextResponse.json(data)
@@ -36,13 +36,13 @@ export async function POST(request: Request) {
     }
 
     try {
-        const { data, error } = await supabase.rpc('insert_batch', {
+        const { data, error } = await supabase.from('Batches').insert([{
+            batch_name: body.batch_name,
             batch_start: body.batch_start,
             batch_end: body.batch_end
-        })
+        }])
 
         if (error) throw error
-        console.log(data)
         return NextResponse.json(data)
     } catch (error) {
         console.error(error)
@@ -54,10 +54,10 @@ export async function PUT(request: Request) {
     const supabase = await createClient()
     const body: Batches = await request.json()
 
-    if (!body.batch_id || !body.batch_start || !body.batch_end) {
+    if (!body.batch_id || !body.batch_name || !body.batch_start || !body.batch_end) {
         return NextResponse.json(
             {
-                error: "Diperlukan 'batch_id', 'batch_start', dan 'batch_end' untuk melanjutkan."
+                error: "Diperlukan 'batch_id', 'batch_name', 'batch_start', dan 'batch_end' untuk melanjutkan."
             },
             { status: 400 }
         )

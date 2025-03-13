@@ -22,7 +22,6 @@ export async function POST(request: Request) {
     }
     const scores: Scores[] = body.scores
 
-    console.log(scores)
     try {
         const { data, error } = await supabase.from('Scores').insert(scores).select()
 

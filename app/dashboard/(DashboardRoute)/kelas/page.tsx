@@ -68,7 +68,7 @@ interface Program {
 
 interface Batch {
     batch_id: string
-    batch_number: number
+    batch_name: string
     batch_start: string
     batch_end: string
 }
@@ -208,6 +208,7 @@ export default function KelasPage() {
     const [deskripsiKelas, setDeskripsiKelas] = useState('')
     const [metodePembelajaran, setMetodePembelajaran] = useState('')
     const [silabus, setSilabus] = useState<string[]>([])
+    const [batchName, setBatchName] = useState<string>("")
     const [startBatch, setStartBatch] = useState<Date | null>(null)
     const [endBatch, setEndBatch] = useState<Date | null>(null)
     const [classActive, setClassActive] = useState<boolean>(false)
@@ -264,6 +265,7 @@ export default function KelasPage() {
             return
         }
         addBatchMutation.mutate({
+            batch_name: batchName,
             batch_start: startBatch.toISOString(),
             batch_end: endBatch.toISOString()
         })
@@ -473,7 +475,7 @@ export default function KelasPage() {
                                 <TableRow key={item.class_id}>
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell>{classesData.Programs.find((program) => program.program_id === item.program_id)?.program_name}</TableCell>
-                                    <TableCell>{classesData.Batches.find((batch) => batch.batch_id === item.batch_id)?.batch_number}</TableCell>
+                                    <TableCell>{classesData.Batches.find((batch) => batch.batch_id === item.batch_id)?.batch_name}</TableCell>
                                     <TableCell>{item.class_name}</TableCell>
                                     <TableCell>{item.class_description}</TableCell>
                                     <TableCell>{item.learning_method}</TableCell>
@@ -525,6 +527,13 @@ export default function KelasPage() {
                     </Typography>
                     <FormControl fullWidth sx={{ mb: 3 }}>
                         <InputLabel>Program</InputLabel>
+                        {!classesData.Classes ? (
+                            <Select value="" onChange={(e) => setIdProgram(e.target.value)} label="Program" required>
+                                <MenuItem value="notfound" disabled>
+                                    Program Tidak Ditemukan
+                                </MenuItem>
+                        </Select>
+                        ) : (
                         <Select value={idProgram || ''} onChange={(e) => setIdProgram(e.target.value)} label="Program" required>
                             {classesData.Programs.map((program) => (
                                 <MenuItem key={program.program_id} value={program.program_id}>
@@ -532,13 +541,22 @@ export default function KelasPage() {
                                 </MenuItem>
                             ))}
                         </Select>
+                        )}
                     </FormControl>
                     <FormControl fullWidth sx={{ mb: 3 }}>
                         <InputLabel>Batch</InputLabel>
+                        {!classesData.Batches ? (
+                        <Select value={idBatch || ''} onChange={(e) => setIdBatch(e.target.value)} label="Batch" required>
+<MenuItem onClick={() => setBatchModalOpen(true)}>
+                                <Button>Tambah Batch</Button>
+                            </MenuItem>
+                        </Select>
+                        ) : (
+
                         <Select value={idBatch || ''} onChange={(e) => setIdBatch(e.target.value)} label="Batch" required>
                             {classesData.Batches.map((batch) => (
                                 <MenuItem key={batch.batch_id} value={batch.batch_id}>
-                                    Batch {batch.batch_number} (
+                                    {batch.batch_name} (
                                     {`${format(new Date(batch.batch_start), 'dd MMMM yyyy - HH:mm', { locale: id })} -> ${format(new Date(batch.batch_end), 'dd MMMM yyyy - HH:mm', {
                                         locale: id
                                     })}`}
@@ -549,6 +567,7 @@ export default function KelasPage() {
                                 <Button>Tambah Batch</Button>
                             </MenuItem>
                         </Select>
+                        )}
                     </FormControl>
                     <CustomTextField sx={{ mb: 3 }} fullWidth label="Nama Kelas" value={namaKelas} onChange={(e) => setNamaKelas(e.target.value)} required />
                     <CustomTextField sx={{ mb: 3 }} fullWidth label="Deskripsi Kelas" value={deskripsiKelas} onChange={(e) => setDeskripsiKelas(e.target.value)} required />
@@ -562,12 +581,16 @@ export default function KelasPage() {
                     <FormControl fullWidth sx={{ mb: 3 }}>
                         <InputLabel>Silabus *</InputLabel>
                         <Select value={silabus} onChange={(e) => handleSilabusChange(e)} label="Silabus" multiple required>
-                            {classesData.Syllabuses &&
+                            {!classesData.Syllabuses ? (
+                                <MenuItem value="notfound" disabled>
+                                Silabus Tidak Ditemukan
+                            </MenuItem>
+                            ) : (
                                 classesData.Syllabuses.map((syllabus) => (
                                     <MenuItem key={syllabus.syllabus_id} value={syllabus.syllabus_id}>
                                         {syllabus.syllabus_name}
                                     </MenuItem>
-                                ))}
+                                )))}
                         </Select>
                     </FormControl>
                     <FormControl fullWidth sx={{ mb: 3 }}>
@@ -584,12 +607,16 @@ export default function KelasPage() {
                     <Typography variant="h5" mb={3}>
                         Tambah Batch
                     </Typography>
+                    <CustomTextField label="Nama Batch" value={batchName} onChange={(e) => setBatchName(e.target.value)} fullWidth required sx={{ mb: 3 }} />
                     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={id}>
                         <DateTimePicker
                             label="Start Batch"
                             value={startBatch}
                             onChange={(newValue) => setStartBatch(newValue)}
                             format="dd MMMM yyyy HH:mm"
+                            sx={{
+                                mb: 3
+                            }}
                             slots={{
                                 textField: CustomTextField
                             }}
@@ -602,6 +629,9 @@ export default function KelasPage() {
                             value={endBatch}
                             onChange={(newValue) => setEndBatch(newValue)}
                             format="dd MMMM yyyy HH:mm"
+                            sx={{
+                                mb: 3
+                            }}
                             slots={{
                                 textField: CustomTextField
                             }}

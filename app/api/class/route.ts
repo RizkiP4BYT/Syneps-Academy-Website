@@ -22,8 +22,8 @@ interface Classes {
         program_name: string
     }
     Batches: {
-        batch_id: number
-        batch_number: number
+        batch_id: string
+        batch_name: string
         batch_start: string
         batch_end: string
     }
@@ -98,7 +98,6 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: "Kamu harus memasukkan 'class_id' untuk penghapusan" }, { status: 400 })
     }
 
-    console.log(class_id)
     try {
         const { error } = await supabase.from('Classes').delete().eq('class_id', class_id)
 
