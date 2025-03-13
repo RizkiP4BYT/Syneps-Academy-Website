@@ -24,7 +24,7 @@ import {
     Skeleton,
     SelectChangeEvent,
     Switch,
-    FormControlLabel,
+    FormControlLabel
 } from '@mui/material'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3'
@@ -101,14 +101,14 @@ export default function KelasPage() {
     const {
         data: classesData = { Classes: [], Programs: [], Batches: [], Syllabuses: [] },
         isLoading,
-        isError,
+        isError
     } = useQuery<ClassesData>({
         queryKey: ['Classes'],
         queryFn: async () => {
             const res = await fetch('/api/class')
             if (!res.ok) throw new Error('Gagal memuat data')
             return res.json()
-        },
+        }
     })
 
     const mutation = useMutation({
@@ -117,7 +117,7 @@ export default function KelasPage() {
             const res = await fetch('/api/class', {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(kelas),
+                body: JSON.stringify(kelas)
             })
             if (!res.ok) throw new Error(await res.json().then((data) => data.error))
             return res.json()
@@ -133,7 +133,7 @@ export default function KelasPage() {
             setSnackbarOpen(true)
             setSnackbarSeverity('error')
             setSnackbarMessage(error.message || 'Gagal menyimpan kelas')
-        },
+        }
     })
 
     const deleteMutation = useMutation({
@@ -141,7 +141,7 @@ export default function KelasPage() {
             const res = await fetch('/api/class', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ class_id }),
+                body: JSON.stringify({ class_id })
             })
             if (!res.ok) throw new Error(await res.json().then((data) => data.error))
             return res.json()
@@ -157,7 +157,7 @@ export default function KelasPage() {
             setSnackbarOpen(true)
             setSnackbarSeverity('error')
             setSnackbarMessage(error.message || 'Gagal menghapus kelas')
-        },
+        }
     })
 
     const addBatchMutation = useMutation({
@@ -165,7 +165,7 @@ export default function KelasPage() {
             const res = await fetch('/api/batch', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(batch),
+                body: JSON.stringify(batch)
             })
             if (!res.ok) throw new Error(await res.json().then((data) => data.error))
             return res.json()
@@ -181,7 +181,7 @@ export default function KelasPage() {
             setSnackbarOpen(true)
             setSnackbarSeverity('error')
             setSnackbarMessage(error.message || 'Gagal menambahkan batch')
-        },
+        }
     })
 
     const modalBoxStyle = {
@@ -193,14 +193,14 @@ export default function KelasPage() {
         bgcolor: 'background.paper',
         boxShadow: 24,
         p: 4,
-        borderRadius: 2,
+        borderRadius: 2
     }
 
     const [modalType, setModalType] = useState<'create' | 'edit'>('create')
     const [modalOpen, setModalOpen] = useState(false)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
     const [batchModalOpen, setBatchModalOpen] = useState(false)
-    const [manageStudentsModalOpen, setManageStudentsModalOpen] = useState(false) // Modal untuk Kelola Siswa
+    const [manageStudentsModalOpen, setManageStudentsModalOpen] = useState(false)
     const [selectedKelas, setSelectedKelas] = useState<Class | null>(null)
     const [idProgram, setIdProgram] = useState<string | null>(null)
     const [idBatch, setIdBatch] = useState<string | null>(null)
@@ -223,18 +223,16 @@ export default function KelasPage() {
             const res = await fetch('/api/user')
             if (!res.ok) throw new Error('Gagal memuat data pengguna')
             return res.json()
-        },
+        }
     })
 
     useEffect(() => {
         if (usersData.length > 0) {
-            // Ambil semua siswa
             const students = usersData.filter((user) => user.user_level === 'Siswa')
-            // Hapus siswa yang sudah terdaftar di kelas dari daftar semua siswa
             const availableStudents = students.filter((student) => !selectedStudents.some((selected) => selected.user_id === student.user_id))
             setAllStudents(availableStudents)
         }
-    }, [usersData, selectedStudents]) // Tambahkan selectedStudents sebagai dependensi
+    }, [usersData, selectedStudents])
 
     useEffect(() => {
         if (selectedKelas) {
@@ -267,7 +265,7 @@ export default function KelasPage() {
         }
         addBatchMutation.mutate({
             batch_start: startBatch.toISOString(),
-            batch_end: endBatch.toISOString(),
+            batch_end: endBatch.toISOString()
         })
     }
 
@@ -290,7 +288,7 @@ export default function KelasPage() {
             const response = await fetch('/api/participant', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+                body: JSON.stringify(data)
             })
             if (!response.ok) throw new Error('Gagal menyimpan peserta')
             return response.json()
@@ -300,19 +298,19 @@ export default function KelasPage() {
             setSnackbarSeverity('success')
             setSnackbarMessage('Peserta berhasil disimpan')
             setManageStudentsModalOpen(false)
-            queryClient.invalidateQueries({ queryKey: ['Classes'] }) // Invalidate query untuk refresh data
+            queryClient.invalidateQueries({ queryKey: ['Classes'] })
         },
         onError: () => {
             setSnackbarOpen(true)
             setSnackbarSeverity('error')
             setSnackbarMessage('Gagal menyimpan peserta')
-        },
+        }
     })
 
     const handleSaveStudents = () => {
         saveStudentsMutation.mutate({
             class_id: selectedKelas!.class_id,
-            participants: selectedStudents,
+            participants: selectedStudents
         })
     }
 
@@ -346,7 +344,7 @@ export default function KelasPage() {
 
     const handleSilabusChange = (event: SelectChangeEvent<string[]>) => {
         const {
-            target: { value },
+            target: { value }
         } = event
         const selectedSyllabuses = typeof value === 'string' ? value.split(',') : value
         setSilabus(selectedSyllabuses)
@@ -366,7 +364,7 @@ export default function KelasPage() {
 
     useEffect(() => {
         if (manageStudentsModalOpen && selectedKelas) {
-            setSelectedStudents(selectedKelas.participants || []) // Set peserta saat modal dibuka
+            setSelectedStudents(selectedKelas.participants || [])
         }
     }, [manageStudentsModalOpen, selectedKelas])
 
@@ -479,7 +477,7 @@ export default function KelasPage() {
                                     <TableCell>{item.class_name}</TableCell>
                                     <TableCell>{item.class_description}</TableCell>
                                     <TableCell>{item.learning_method}</TableCell>
-                                    <TableCell align='center'>{item.is_active ? <CircleTwoTone color='success'/> : <CircleTwoTone color='error'/>}</TableCell>
+                                    <TableCell align="center">{item.is_active ? <CircleTwoTone color="success" /> : <CircleTwoTone color="error" />}</TableCell>
                                     <TableCell>
                                         <ButtonGroup variant="contained" size={isMobile ? 'small' : 'medium'}>
                                             <Button
@@ -506,7 +504,7 @@ export default function KelasPage() {
                                                 color="primary"
                                                 onClick={() => {
                                                     setSelectedKelas(item)
-                                                    setManageStudentsModalOpen(true) // Buka modal Kelola Siswa
+                                                    setManageStudentsModalOpen(true)
                                                 }}
                                             >
                                                 <PersonAdd />
@@ -542,7 +540,7 @@ export default function KelasPage() {
                                 <MenuItem key={batch.batch_id} value={batch.batch_id}>
                                     Batch {batch.batch_number} (
                                     {`${format(new Date(batch.batch_start), 'dd MMMM yyyy - HH:mm', { locale: id })} -> ${format(new Date(batch.batch_end), 'dd MMMM yyyy - HH:mm', {
-                                        locale: id,
+                                        locale: id
                                     })}`}
                                     )
                                 </MenuItem>
@@ -573,7 +571,7 @@ export default function KelasPage() {
                         </Select>
                     </FormControl>
                     <FormControl fullWidth sx={{ mb: 3 }}>
-                        <FormControlLabel control={<Switch checked={classActive} onChange={(e) => setClassActive(e.target.checked)}/>} label="Aktifkan kelas?"/>
+                        <FormControlLabel control={<Switch checked={classActive} onChange={(e) => setClassActive(e.target.checked)} />} label="Aktifkan kelas?" />
                     </FormControl>
                     <Button type="submit" variant="contained" color="primary">
                         Simpan
@@ -593,10 +591,10 @@ export default function KelasPage() {
                             onChange={(newValue) => setStartBatch(newValue)}
                             format="dd MMMM yyyy HH:mm"
                             slots={{
-                                textField: CustomTextField,
+                                textField: CustomTextField
                             }}
                             slotProps={{
-                                textField: { fullWidth: true, required: true },
+                                textField: { fullWidth: true, required: true }
                             }}
                         />
                         <DateTimePicker
@@ -605,10 +603,10 @@ export default function KelasPage() {
                             onChange={(newValue) => setEndBatch(newValue)}
                             format="dd MMMM yyyy HH:mm"
                             slots={{
-                                textField: CustomTextField,
+                                textField: CustomTextField
                             }}
                             slotProps={{
-                                textField: { fullWidth: true, required: true },
+                                textField: { fullWidth: true, required: true }
                             }}
                         />
                     </LocalizationProvider>
@@ -638,7 +636,7 @@ export default function KelasPage() {
                         Kelola Siswa pada kelas {selectedKelas?.class_name}
                     </Typography>
                     <Grid2 container spacing={2}>
-                        <Grid2 sx={{xs:6}}>
+                        <Grid2 sx={{ xs: 6 }}>
                             <Typography variant="h6">Semua Siswa</Typography>
                             <TableContainer>
                                 <Table>
@@ -663,7 +661,7 @@ export default function KelasPage() {
                                 </Table>
                             </TableContainer>
                         </Grid2>
-                        <Grid2 sx={{xs:6}}>
+                        <Grid2 sx={{ xs: 6 }}>
                             <Typography variant="h6">Siswa di Kelas</Typography>
                             <TableContainer>
                                 <Table>

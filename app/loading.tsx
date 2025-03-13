@@ -1,4 +1,3 @@
-// Loading.tsx
 'use client'
 
 import { LinearProgress, Box } from '@mui/material'

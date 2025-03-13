@@ -23,7 +23,6 @@ export async function POST(request: Request) {
     const supabase = await createClient()
     const body: UserRequest = await request.json()
 
-    // Validasi input
     if (
         !body.class_id ||
         !body.fullName ||
@@ -84,7 +83,6 @@ export async function POST(request: Request) {
             throw participantError
         }
 
-        // Insert data ke tabel Analytics
         const { error: analyticsError } = await supabase.from('Analytics').insert([
             {
                 user_id: user[0].user_id,
