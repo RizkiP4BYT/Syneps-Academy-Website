@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Card, CardActionArea, CardContent, Grid2, Stack, Typography, useMediaQuery, useTheme, MenuItem, Autocomplete, Button, Skeleton } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import Image from 'next/image'
@@ -88,6 +88,14 @@ const RegistrationPage = () => {
         }))
     )
 
+    useEffect(() => {
+        if (!activeClass.Programs.length && !isLoading && !isError) {
+            setSnackbarOpen(true)
+            setSnackbarSeverity('error')
+            setSnackbarMessage('Tidak ada program yang tersedia saat ini.')
+        }
+    }, [activeClass, isLoading, isError])
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsSubmitting(true)
@@ -156,7 +164,7 @@ const RegistrationPage = () => {
             setIsSubmitting(false)
         }
     }
-
+    console.log(activeClass.Classes)
     if (isLoading) {
         return (
             <Box p={isMobile ? 2 : 4}>
@@ -296,7 +304,7 @@ const RegistrationPage = () => {
                                         onChange={(e) => setSelectedClass(e.target.value)}
                                     >
                                         {selectedProgram ? (
-                                            activeClass.Classes.filter((c) => c.program_id === selectedProgram).length > 0 ? (
+                                            activeClass.Classes && activeClass.Classes.filter((c) => c.program_id === selectedProgram).length > 0 ? (
                                                 activeClass.Classes.filter((c) => c.program_id === selectedProgram).map((kelas) => (
                                                     <MenuItem key={kelas.class_id} value={kelas.class_id} sx={{ whiteSpace: 'normal' }}>
                                                         {kelas.class_name} - {activeClass.Batches.find((b) => b.batch_id === kelas.batch_id)?.batch_name} (
