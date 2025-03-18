@@ -20,8 +20,9 @@ export async function login(formData: FormData) {
         return error.code
     }
 
+    return 'login_success'
     // setTimeout(() => {
-    redirect('/dashboard')
+    // redirect('/dashboard')
     // }, 5000)
 }
 
