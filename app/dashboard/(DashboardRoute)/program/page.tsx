@@ -44,6 +44,7 @@ export default function ProgramPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['Programs'] })
+            queryClient.invalidateQueries({ queryKey: ['Classes'] })
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
             setSnackbarMessage('Program berhasil disimpan')
@@ -68,6 +69,7 @@ export default function ProgramPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['Programs'] })
+            queryClient.invalidateQueries({ queryKey: ['Classes'] })
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
             setSnackbarMessage('Program berhasil dihapus')

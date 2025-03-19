@@ -45,6 +45,7 @@ export default function SilabusPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['Syllabuses'] })
+            queryClient.invalidateQueries({ queryKey: ['Classes'] })
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
             setSnackbarMessage('Silabus berhasil disimpan')
@@ -69,6 +70,7 @@ export default function SilabusPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['Syllabuses'] })
+            queryClient.invalidateQueries({ queryKey: ['Classes'] })
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
             setSnackbarMessage('Silabus berhasil dihapus')

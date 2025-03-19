@@ -55,6 +55,7 @@ export default function BatchPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['Batches'] })
+            queryClient.invalidateQueries({ queryKey: ['Classes'] })
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
             setSnackbarMessage('Batch berhasil disimpan')
@@ -79,6 +80,7 @@ export default function BatchPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['Batches'] })
+            queryClient.invalidateQueries({ queryKey: ['Classes'] })
             setSnackbarOpen(true)
             setSnackbarSeverity('success')
             setSnackbarMessage('Batch berhasil dihapus')
