@@ -208,7 +208,7 @@ export default function KelasPage() {
     const [deskripsiKelas, setDeskripsiKelas] = useState('')
     const [metodePembelajaran, setMetodePembelajaran] = useState('')
     const [silabus, setSilabus] = useState<string[]>([])
-    const [batchName, setBatchName] = useState<string>("")
+    const [batchName, setBatchName] = useState<string>('')
     const [startBatch, setStartBatch] = useState<Date | null>(null)
     const [endBatch, setEndBatch] = useState<Date | null>(null)
     const [classActive, setClassActive] = useState<boolean>(false)
@@ -218,22 +218,18 @@ export default function KelasPage() {
     const [allStudents, setAllStudents] = useState<User[]>([])
     const [selectedStudents, setSelectedStudents] = useState<User[]>([])
 
-    const { data: usersData = [] } = useQuery<User[]>({
-        queryKey: ['Users'],
-        queryFn: async () => {
-            const res = await fetch('/api/user')
-            if (!res.ok) throw new Error('Gagal memuat data pengguna')
-            return res.json()
-        }
-    })
-
     useEffect(() => {
-        if (usersData.length > 0) {
-            const students = usersData.filter((user) => user.user_level === 'Siswa')
-            const availableStudents = students.filter((student) => !selectedStudents.some((selected) => selected.user_id === student.user_id))
-            setAllStudents(availableStudents)
+        const fetchUser = async () => {
+            const res = await fetch('/api/user', { method: 'GET' })
+            const usersData: User[] = await res.json()
+            if (usersData.length > 0) {
+                const students = usersData.filter((user) => user.user_level === 'Siswa')
+                const availableStudents = students.filter((student) => !selectedStudents.some((selected) => selected.user_id === student.user_id))
+                setAllStudents(availableStudents)
+            }
         }
-    }, [usersData, selectedStudents])
+        fetchUser()
+    }, [selectedStudents])
 
     useEffect(() => {
         if (selectedKelas) {
@@ -527,46 +523,45 @@ export default function KelasPage() {
                     </Typography>
                     <FormControl fullWidth sx={{ mb: 3 }}>
                         <InputLabel>Program</InputLabel>
-                        {!classesData.Classes ? (
+                        {!classesData.Programs ? (
                             <Select value="" onChange={(e) => setIdProgram(e.target.value)} label="Program" required>
                                 <MenuItem value="notfound" disabled>
                                     Program Tidak Ditemukan
                                 </MenuItem>
-                        </Select>
+                            </Select>
                         ) : (
-                        <Select value={idProgram || ''} onChange={(e) => setIdProgram(e.target.value)} label="Program" required>
-                            {classesData.Programs.map((program) => (
-                                <MenuItem key={program.program_id} value={program.program_id}>
-                                    {program.program_name}
-                                </MenuItem>
-                            ))}
-                        </Select>
+                            <Select value={idProgram || ''} onChange={(e) => setIdProgram(e.target.value)} label="Program" required>
+                                {classesData.Programs.map((program) => (
+                                    <MenuItem key={program.program_id} value={program.program_id}>
+                                        {program.program_name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
                         )}
                     </FormControl>
                     <FormControl fullWidth sx={{ mb: 3 }}>
                         <InputLabel>Batch</InputLabel>
                         {!classesData.Batches ? (
-                        <Select value={idBatch || ''} onChange={(e) => setIdBatch(e.target.value)} label="Batch" required>
-<MenuItem onClick={() => setBatchModalOpen(true)}>
-                                <Button>Tambah Batch</Button>
-                            </MenuItem>
-                        </Select>
-                        ) : (
-
-                        <Select value={idBatch || ''} onChange={(e) => setIdBatch(e.target.value)} label="Batch" required>
-                            {classesData.Batches.map((batch) => (
-                                <MenuItem key={batch.batch_id} value={batch.batch_id}>
-                                    {batch.batch_name} (
-                                    {`${format(new Date(batch.batch_start), 'dd MMMM yyyy - HH:mm', { locale: id })} -> ${format(new Date(batch.batch_end), 'dd MMMM yyyy - HH:mm', {
-                                        locale: id
-                                    })}`}
-                                    )
+                            <Select value={idBatch || ''} onChange={(e) => setIdBatch(e.target.value)} label="Batch" required>
+                                <MenuItem onClick={() => setBatchModalOpen(true)}>
+                                    <Button>Tambah Batch</Button>
                                 </MenuItem>
-                            ))}
-                            <MenuItem onClick={() => setBatchModalOpen(true)}>
-                                <Button>Tambah Batch</Button>
-                            </MenuItem>
-                        </Select>
+                            </Select>
+                        ) : (
+                            <Select value={idBatch || ''} onChange={(e) => setIdBatch(e.target.value)} label="Batch" required>
+                                {classesData.Batches.map((batch) => (
+                                    <MenuItem key={batch.batch_id} value={batch.batch_id}>
+                                        {batch.batch_name} (
+                                        {`${format(new Date(batch.batch_start), 'dd MMMM yyyy - HH:mm', { locale: id })} -> ${format(new Date(batch.batch_end), 'dd MMMM yyyy - HH:mm', {
+                                            locale: id
+                                        })}`}
+                                        )
+                                    </MenuItem>
+                                ))}
+                                <MenuItem onClick={() => setBatchModalOpen(true)}>
+                                    <Button>Tambah Batch</Button>
+                                </MenuItem>
+                            </Select>
                         )}
                     </FormControl>
                     <CustomTextField sx={{ mb: 3 }} fullWidth label="Nama Kelas" value={namaKelas} onChange={(e) => setNamaKelas(e.target.value)} required />
@@ -583,14 +578,15 @@ export default function KelasPage() {
                         <Select value={silabus} onChange={(e) => handleSilabusChange(e)} label="Silabus" multiple required>
                             {!classesData.Syllabuses ? (
                                 <MenuItem value="notfound" disabled>
-                                Silabus Tidak Ditemukan
-                            </MenuItem>
+                                    Silabus Tidak Ditemukan
+                                </MenuItem>
                             ) : (
                                 classesData.Syllabuses.map((syllabus) => (
                                     <MenuItem key={syllabus.syllabus_id} value={syllabus.syllabus_id}>
                                         {syllabus.syllabus_name}
                                     </MenuItem>
-                                )))}
+                                ))
+                            )}
                         </Select>
                     </FormControl>
                     <FormControl fullWidth sx={{ mb: 3 }}>
