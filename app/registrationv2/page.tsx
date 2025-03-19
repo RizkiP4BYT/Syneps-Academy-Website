@@ -68,7 +68,7 @@ const RegistrationPage = () => {
     const [selectedProgram, setSelectedProgram] = useState<string>('')
     const [selectedClass, setSelectedClass] = useState<string>('')
     const [birthDate, setBirthDate] = useState<Date | null>(null)
-    const [paymentMethod, setPaymentMethod] = useState<string>('')
+    const [paymentMethod, setPaymentMethod] = useState<string>('upfront')
     const [fullName, setFullName] = useState<string>('')
     const [email, setEmail] = useState<string>('')
     const [gender, setGender] = useState<string>('')
@@ -148,7 +148,7 @@ const RegistrationPage = () => {
                 body: JSON.stringify(formData)
             })
 
-            if (!response.ok) {
+            if (!response.ok || response.status !== 200) {
                 setSnackbarOpen(true)
                 setSnackbarSeverity('error')
                 setSnackbarMessage('Gagal mengirim formulir')
