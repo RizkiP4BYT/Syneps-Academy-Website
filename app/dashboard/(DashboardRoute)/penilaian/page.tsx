@@ -41,6 +41,7 @@ interface Class {
             score_id: string
             syllabus_id: string
             class_id: string
+            user_id: string
         }[]
         user_id: string
         user_name: string
@@ -161,7 +162,7 @@ export default function PenilaianPage() {
 
     useEffect(() => {
         if (classesData.Classes) {
-        const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
+            const classData = classesData.Classes.find((cl) => cl.class_id === selectedClassId)
             setSelectedClass(classData!)
         }
     }, [classesData, selectedClassId])
@@ -232,18 +233,20 @@ export default function PenilaianPage() {
                     <FormControl fullWidth sx={{ width: '20rem' }}>
                         <InputLabel id="select-class-label">Pilih Kelas</InputLabel>
                         {!classesData.Classes ? (
-                        <Select labelId="select-class-label" value={selectedClassId || ''} onChange={(e) => setSelectedClassId(e.target.value)} fullWidth>
-<MenuItem value="null" disabled>Kelas Tidak Tersedia</MenuItem>
-                        </Select>
-                        ) : (
-                        <Select labelId="select-class-label" value={selectedClassId || ''} onChange={(e) => setSelectedClassId(e.target.value)} fullWidth>
-                            {classesData.Classes.map((item) => (
-                                <MenuItem key={item.class_id} value={item.class_id}>
-                                    {classesData.Batches.find((batch) => batch.batch_id === item.batch_id)?.batch_name}{' '}
-                                    {classesData.Programs.find((program) => program.program_id === item.program_id)?.program_name} {item.class_name}
+                            <Select labelId="select-class-label" value={selectedClassId || ''} onChange={(e) => setSelectedClassId(e.target.value)} fullWidth>
+                                <MenuItem value="null" disabled>
+                                    Kelas Tidak Tersedia
                                 </MenuItem>
-                            ))}
-                        </Select>
+                            </Select>
+                        ) : (
+                            <Select labelId="select-class-label" value={selectedClassId || ''} onChange={(e) => setSelectedClassId(e.target.value)} fullWidth>
+                                {classesData.Classes.map((item) => (
+                                    <MenuItem key={item.class_id} value={item.class_id}>
+                                        {classesData.Batches.find((batch) => batch.batch_id === item.batch_id)?.batch_name}{' '}
+                                        {classesData.Programs.find((program) => program.program_id === item.program_id)?.program_name} {item.class_name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
                         )}
                     </FormControl>
                 </Grid2>
@@ -284,12 +287,12 @@ export default function PenilaianPage() {
                                     <TableCell>{cp.user_name}</TableCell>
                                     {selectedClassId ? (
                                         selectedClass.syllabuses.map((syllabus) => (
-                                            <TableCell key={syllabus.syllabus_id}>{cp.scores?.find((score) => score.syllabus_id === syllabus.syllabus_id)?.score ?? 0}</TableCell>
+                                            <TableCell key={syllabus.syllabus_id}>{cp.scores?.find((score) => score.syllabus_id === syllabus.syllabus_id && score.user_id)?.score ?? 0}</TableCell>
                                         ))
                                     ) : (
                                         <TableCell>Silabus</TableCell>
                                     )}
-                                    <TableCell>{cp.scores ? (cp.scores?.reduce((acc, score) => acc + score.score, 0) / cp.scores.length).toFixed(2) : "0"}</TableCell>
+                                    <TableCell>{cp.scores ? (cp.scores?.reduce((acc, score) => acc + score.score, 0) / cp.scores.length).toFixed(2) : '0'}</TableCell>
                                     <TableCell>
                                         <ButtonGroup variant="contained" size={isMobile ? 'small' : 'medium'}>
                                             {!cp.scores ? (
@@ -359,14 +362,12 @@ export default function PenilaianPage() {
                             {editMode ? 'Edit Nilai' : 'Buat Nilai Baru'}
                         </Typography>
 
-                        {/* Tampilkan Nama Siswa */}
                         {selectedParticipant && (
                             <Typography variant="body1" mb={3}>
                                 Nama Siswa: {participantName}
                             </Typography>
                         )}
 
-                        {/* Input Nilai untuk Setiap Silabus */}
                         {selectedClass?.syllabuses.map((syllabus) => (
                             <CustomTextField
                                 key={syllabus.syllabus_id}
